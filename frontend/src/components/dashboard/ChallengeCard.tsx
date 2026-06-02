@@ -1,0 +1,48 @@
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { Flame, Gift } from "lucide-react";
+import { formatFcfa } from "@/lib/platformStats";
+import type { DashboardChallenge } from "@/lib/ambassador";
+
+type ChallengeCardProps = {
+  challenge: DashboardChallenge;
+};
+
+export function ChallengeCard({ challenge }: ChallengeCardProps) {
+  const endsAt = challenge.ends_at ? new Date(challenge.ends_at) : null;
+  const endsLabel = endsAt
+    ? endsAt.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })
+    : "Bientôt";
+
+  return (
+    <section className="rounded-eig-lg border border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 p-5 shadow-eig">
+      <div className="flex items-center gap-2">
+        <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500 text-white">
+          <Flame size={18} />
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-orange-600">Challenge en cours</p>
+          <h3 className="text-lg font-bold text-eig-blue">{challenge.title}</h3>
+        </div>
+      </div>
+
+      <p className="mt-3 text-sm text-slate-700">
+        Obtiens {challenge.target_enrollments} inscriptions validées avant la fin du challenge.
+      </p>
+
+      <div className="mt-4 flex items-center gap-2 rounded-xl bg-white/80 px-3 py-2 text-sm">
+        <Gift size={16} className="text-orange-500" />
+        <span className="font-semibold text-slate-800">Récompense : {formatFcfa(challenge.reward_amount)}</span>
+      </div>
+
+      <div className="mt-4">
+        <ProgressBar
+          value={challenge.current_enrollments}
+          max={challenge.target_enrollments}
+          label="Progression"
+        />
+      </div>
+
+      <p className="mt-3 text-xs text-orange-700">Fin : {endsLabel}</p>
+    </section>
+  );
+}
