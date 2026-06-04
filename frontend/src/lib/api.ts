@@ -70,6 +70,6 @@ export async function apiRequest<T>(
     }
     return { data: json as T };
   } catch {
-    return { error: "Serveur API injoignable." };
+      return { error: "Impossible de joindre le serveur. Vérifiez que l'API est démarrée." };
   }
 }

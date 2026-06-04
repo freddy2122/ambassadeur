@@ -9,32 +9,32 @@ export const tierLabels: Record<Tier, string> = {
 };
 
 export const tierDescriptions: Record<Tier, string> = {
-  bronze: "0 – 5 inscriptions validées",
-  argent: "6 – 10 inscriptions validées",
-  or: "11 – 20 inscriptions validées",
-  platine: "21+ inscriptions validées",
+  bronze: "Jusqu'à 5 inscriptions validées",
+  argent: "6 à 10 inscriptions validées",
+  or: "11 à 20 inscriptions validées",
+  platine: "Plus de 20 inscriptions validées",
 };
 
 export const howItWorksSteps = [
   {
     step: 1,
-    title: "Je crée mon compte",
-    description: "Inscription gratuite en quelques minutes pour rejoindre le programme.",
+    title: "Créer un compte",
+    description: "Inscription en ligne, validation par code e-mail.",
   },
   {
     step: 2,
-    title: "Je partage mon code",
-    description: "Partage ton lien ou code ambassadeur avec ton réseau.",
+    title: "Recevoir son code",
+    description: "Chaque ambassadeur dispose d'un code et d'un lien de parrainage.",
   },
   {
     step: 3,
-    title: "Mes amis s'inscrivent",
-    description: "Tes filleuls choisissent une formation EIG via ton lien.",
+    title: "Orienter les candidats",
+    description: "Les inscriptions passent par le catalogue des formations EIG.",
   },
   {
     step: 4,
-    title: "Je gagne des récompenses",
-    description: "Commission versée à chaque inscription validée.",
+    title: "Percevoir les commissions",
+    description: "Rémunération après validation administrative de l'inscription.",
   },
 ] as const;
 
@@ -45,7 +45,7 @@ export type PlatformStats = {
 };
 
 export const defaultPlatformStats: PlatformStats = {
-  ambassadors: 245,
-  validatedEnrollments: 128,
-  totalDistributed: 3_250_000,
+  ambassadors: 0,
+  validatedEnrollments: 0,
+  totalDistributed: 0,
 };

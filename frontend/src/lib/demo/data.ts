@@ -8,8 +8,8 @@ export const demoAmbassador = {
   phone: "+229 97 00 00 00",
   city: "Cotonou",
   code: "AMB-025",
-  referralUrl: "https://eigambassadors.com/AMB-025",
-  personalUrl: "https://eigambassadors.com/formations?ref=AMB-025",
+  referralUrl: "https://www.eiggroupe.com/formations?ref=AMB-025",
+  personalUrl: "https://www.eiggroupe.com/formations?ref=AMB-025",
 };
 
 export const demoPlatformStats = defaultPlatformStats;

@@ -20,24 +20,34 @@ Programme ambassadeur EIG — frontend Next.js + API Laravel.
 
 Voir `frontend/DEPLOY-DEMO.md` pour le détail.
 
-## Développement local
+## Développement local (API réelle)
 
+**Backend** (terminal 1) :
 ```bash
-# Frontend
+cd backend
+php artisan serve
+# API : http://127.0.0.1:8000/api/v1
+```
+
+**Frontend** (terminal 2) :
+```bash
 cd frontend
-cp .env.local.example .env.local   # NEXT_PUBLIC_DEMO_MODE=true
+cp .env.local.example .env.local
 npm install
 npm run dev
 ```
 
-```bash
-# Backend (optionnel)
-cd backend
-composer install
-cp .env.example .env
-php artisan migrate
-php artisan serve
+Dans `backend/.env`, vérifier :
+- `APP_FRONTEND_URL=http://localhost:3000`
+- `CORS_ALLOWED_ORIGINS` inclut `http://localhost:3000`
+
+Dans `frontend/.env.local` :
+```env
+NEXT_PUBLIC_DEMO_MODE=false
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1
 ```
+
+Pour un aperçu sans API : `NEXT_PUBLIC_DEMO_MODE=true`
 
 ## Repository
 

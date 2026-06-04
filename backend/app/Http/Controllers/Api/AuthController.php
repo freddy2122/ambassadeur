@@ -68,24 +68,20 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $request->merge([
-            'email' => Str::lower(trim((string) $request->input('email', ''))),
-        ]);
-
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
+        $validated = $request->validate([
+            'login' => ['required_without:email', 'string', 'max:255'],
+            'email' => ['required_without:login', 'string', 'max:255'],
             'password' => ['required', 'string'],
         ]);
 
-        $emailNormalized = $credentials['email'];
+        $login = trim((string) ($validated['login'] ?? $validated['email'] ?? ''));
+        $password = $validated['password'];
 
-        $user = User::query()
-            ->whereRaw('LOWER(email) = ?', [$emailNormalized])
-            ->first();
+        $user = $this->resolveUserByLogin($login);
 
-        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+        if (! $user || ! Hash::check($password, $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Les identifiants sont invalides.'],
+                'login' => ['Identifiants incorrects.'],
             ]);
         }
 
@@ -94,8 +90,9 @@ class AuthController extends Controller
             $this->verificationCode->send($user, $code);
 
             return response()->json([
-                'message' => 'Votre compte doit être validé. Un nouveau code vous a été envoyé.',
+                'message' => 'Compte non vérifié. Un code vous a été envoyé par e-mail.',
                 'requires_verification' => true,
+                'email' => $user->email,
                 'debug_verification_code' => config('app.debug') ? $code : null,
             ]);
         }
@@ -106,6 +103,26 @@ class AuthController extends Controller
             'user' => $user,
             'token' => $token,
         ]);
+    }
+
+    protected function resolveUserByLogin(string $login): ?User
+    {
+        if (str_contains($login, '@')) {
+            $email = Str::lower($login);
+
+            return User::query()
+                ->whereRaw('LOWER(email) = ?', [$email])
+                ->first();
+        }
+
+        $phone = preg_replace('/\s+/', '', $login);
+
+        return User::query()
+            ->whereHas('ambassadorProfile', function ($query) use ($phone): void {
+                $query->where('phone', $phone)
+                    ->orWhere('phone', 'like', '%'.$phone);
+            })
+            ->first();
     }
 
     public function logout(Request $request)

@@ -39,8 +39,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-5 pb-20 lg:pb-0">
       <section className="rounded-eig-lg border border-eig-blue bg-gradient-to-r from-eig-blue to-eig-blue-light p-6 text-white shadow-eig-lg">
-        <p className="text-sm text-blue-100">Bonjour {firstName} 👋</p>
-        <h2 className="mt-1 text-2xl font-extrabold">Voici tes performances.</h2>
+        <p className="text-sm text-blue-100">Bonjour {firstName},</p>
+        <h2 className="mt-1 text-2xl font-extrabold">Tableau de bord</h2>
       </section>
 
       {error ? (
@@ -49,7 +49,7 @@ export default function DashboardPage() {
 
       {loading ? (
         <section className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
-          Chargement de ton espace ambassadeur...
+          Chargement…
         </section>
       ) : null}
 

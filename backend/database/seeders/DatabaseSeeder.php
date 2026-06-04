@@ -24,6 +24,9 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        $this->call(CommissionRuleSeeder::class);
+        $this->call([
+            CommissionRuleSeeder::class,
+            ChallengeSeeder::class,
+        ]);
     }
 }

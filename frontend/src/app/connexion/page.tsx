@@ -6,18 +6,18 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { apiRequest, setToken } from "@/lib/api";
-import { isDemoMode } from "@/lib/demo/config";
-import { DEMO_LOGIN_HINT } from "@/lib/demo/config";
+import { isDemoMode, DEMO_LOGIN_HINT } from "@/lib/demo/config";
 
 type LoginResponse = {
   token?: string;
   message?: string;
   requires_verification?: boolean;
+  email?: string;
 };
 
 export default function ConnexionPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -28,7 +28,7 @@ export default function ConnexionPage() {
 
     const result = await apiRequest<LoginResponse>("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ login, password }),
     });
 
     if (result.error) {
@@ -37,6 +37,7 @@ export default function ConnexionPage() {
     }
 
     if (result.data?.requires_verification) {
+      const email = result.data.email ?? (login.includes("@") ? login : "");
       router.push(`/verification?email=${encodeURIComponent(email)}`);
       return;
     }
@@ -47,7 +48,7 @@ export default function ConnexionPage() {
       return;
     }
 
-    setError("Reponse inattendue.");
+    setError("Réponse du serveur inattendue.");
   }
 
   return (
@@ -55,56 +56,56 @@ export default function ConnexionPage() {
       <aside className="relative hidden lg:block">
         <Image
           src="https://eiggroupe.com/wp-content/uploads/2025/04/stream-licence-pro.png"
-          alt="Ambassadeur EIG"
+          alt="EIG"
           fill
           priority
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-[#0b2e7a]/75" />
+        <div className="absolute inset-0 bg-eig-blue/80" />
         <div className="absolute inset-0 flex items-end p-10 text-white">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em]">EIG Ambassadeur</p>
-            <h2 className="mt-2 text-3xl font-bold leading-tight">Accédez à votre espace partenaire</h2>
-            <p className="mt-3 max-w-md text-sm text-white/90">
-              Suivez vos leads, vos commissions et vos performances dans une interface dédiée.
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-eig-cyan-light">EIG Ambassadors</p>
+            <h2 className="mt-2 text-3xl font-bold leading-tight">Espace ambassadeur</h2>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-white/90">
+              Consultez vos parrainages, vos commissions et vos demandes de retrait.
             </p>
           </div>
         </div>
       </aside>
 
       <section className="flex items-center justify-center bg-slate-50 p-6 md:p-10">
-        <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+        <div className="w-full max-w-md rounded-eig-lg border border-slate-200 bg-white p-6 shadow-eig md:p-8">
           <div className="mb-4 flex justify-center">
             <Image src="/favicon-32.png" alt="EIG" width={42} height={42} />
           </div>
-          <h1 className="text-2xl font-bold text-[#0b2e7a]">Connexion partenaire</h1>
-          <p className="mt-1 text-sm text-slate-600">Connectez-vous pour gérer votre activité ambassadeur.</p>
+          <h1 className="text-2xl font-bold text-eig-blue">Connexion</h1>
+          <p className="mt-1 text-sm text-slate-600">E-mail ou numéro WhatsApp enregistré à l&apos;inscription.</p>
 
           {isDemoMode ? (
             <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-              Mode démo : utilisez n&apos;importe quel e-mail et mot de passe, ou{" "}
-              <span className="font-mono font-semibold">{DEMO_LOGIN_HINT.email}</span> /{" "}
-              <span className="font-mono font-semibold">{DEMO_LOGIN_HINT.password}</span>
+              Aperçu sans serveur : {DEMO_LOGIN_HINT.email} / {DEMO_LOGIN_HINT.password}
             </p>
           ) : null}
 
           <form className="mt-5 space-y-3" onSubmit={onSubmit}>
             <input
-              className="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm"
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-eig-cyan focus:ring-2 focus:ring-eig-cyan/20"
+              type="text"
+              placeholder="E-mail ou téléphone"
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
               required
+              autoComplete="username"
             />
             <div className="relative">
               <input
-                className="w-full rounded-md border border-slate-300 px-3 py-2.5 pr-10 text-sm"
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 pr-10 text-sm outline-none focus:border-eig-cyan focus:ring-2 focus:ring-eig-cyan/20"
                 type={showPassword ? "text" : "password"}
                 placeholder="Mot de passe"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
               />
               <button
                 type="button"
@@ -116,20 +117,23 @@ export default function ConnexionPage() {
               </button>
             </div>
             <div className="text-right">
-              <Link href="/mot-de-passe-oublie" className="text-sm font-medium text-[#0b2e7a] hover:underline">
-                Mot de passe oublié ?
+              <Link href="/mot-de-passe-oublie" className="text-sm font-medium text-eig-blue hover:underline">
+                Mot de passe oublié
               </Link>
             </div>
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
-            <button className="w-full rounded-md bg-[#0b2e7a] px-4 py-2.5 text-sm font-semibold text-white" type="submit">
+            <button
+              className="w-full rounded-xl bg-eig-blue px-4 py-2.5 text-sm font-semibold text-white hover:bg-eig-blue-light"
+              type="submit"
+            >
               Se connecter
             </button>
           </form>
 
           <p className="mt-4 text-sm text-slate-600">
-            Pas encore de compte ?{" "}
-            <Link href="/partenaires/inscription" className="font-semibold text-[#0b2e7a] hover:underline">
-              Créer un compte partenaire
+            Pas encore inscrit ?{" "}
+            <Link href="/partenaires/inscription" className="font-semibold text-eig-blue hover:underline">
+              Créer un compte
             </Link>
           </p>
         </div>

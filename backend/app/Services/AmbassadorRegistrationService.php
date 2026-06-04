@@ -24,9 +24,14 @@ class AmbassadorRegistrationService
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => $validated['password'],
-                'phone' => $validated['phone'],
                 'role' => 'ambassador',
                 'referred_by_user_id' => $referrer?->ambassador_id,
+            ]);
+
+            $user->ambassadorProfile()->create([
+                'phone' => $validated['phone'],
+                'status' => 'active',
+                'onboarding_step' => 'registered',
             ]);
 
             $referralCode = $this->generateUniqueReferralCode($user->id);

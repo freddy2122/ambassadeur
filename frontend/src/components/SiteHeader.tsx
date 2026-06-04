@@ -36,7 +36,7 @@ export function SiteHeader() {
                 href="/partenaires/inscription"
                 className="rounded-xl bg-eig-blue px-4 py-2 text-white transition-colors hover:bg-eig-blue-light"
               >
-                Devenir Ambassadeur
+                S&apos;inscrire
               </Link>
               <Link
                 href="/connexion"

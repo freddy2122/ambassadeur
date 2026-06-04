@@ -37,7 +37,7 @@ export function LevelCard({ tier }: LevelCardProps) {
         </div>
       ) : (
         <p className="mt-4 text-sm font-medium text-tier-platinum">
-          Félicitations ! Tu as atteint le niveau maximum.
+          Vous avez atteint le niveau le plus élevé du programme.
         </p>
       )}
     </section>

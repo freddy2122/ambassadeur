@@ -26,12 +26,12 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
       </div>
 
       <p className="mt-3 text-sm text-slate-700">
-        Obtiens {challenge.target_enrollments} inscriptions validées avant la fin du challenge.
+        Objectif : {challenge.target_enrollments} inscriptions validées avant la date limite.
       </p>
 
       <div className="mt-4 flex items-center gap-2 rounded-xl bg-white/80 px-3 py-2 text-sm">
         <Gift size={16} className="text-orange-500" />
-        <span className="font-semibold text-slate-800">Récompense : {formatFcfa(challenge.reward_amount)}</span>
+        <span className="font-medium text-slate-800">Prime : {formatFcfa(challenge.reward_amount)}</span>
       </div>
 
       <div className="mt-4">

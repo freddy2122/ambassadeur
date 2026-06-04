@@ -25,7 +25,11 @@ class AmbassadorDashboardController extends Controller
 
     public function profile(Request $request)
     {
-        $user = $request->user()->load('ambassadorProfile');
+        $user = $request->user()->load('ambassadorProfile', 'referralLinks');
+        $validatedCount = $user->enrollments()->whereNotNull('validated_at')->count();
+        $earnings = $this->insights->earningsBreakdown($user->id);
+        $tier = $this->tierService->tierProgress($validatedCount);
+        $referralCode = $user->referralLinks()->latest()->first()?->code;
 
         return response()->json([
             'profile' => [
@@ -38,6 +42,10 @@ class AmbassadorDashboardController extends Controller
                 'payment_account' => $user->ambassadorProfile?->payment_account,
                 'payment_account_holder' => $user->ambassadorProfile?->payment_account_holder,
                 'payment_bank_code' => $user->ambassadorProfile?->payment_bank_code,
+                'referral_code' => $referralCode,
+                'validated_enrollments' => $validatedCount,
+                'total_earnings' => $earnings['available'] + $earnings['pending'] + $earnings['paid'],
+                'tier' => $tier['current_tier'],
             ],
         ]);
     }
@@ -147,6 +155,15 @@ class AmbassadorDashboardController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+
+        if ($user->role === 'ambassador' && ! $user->ambassadorProfile) {
+            $user->ambassadorProfile()->create([
+                'status' => 'active',
+                'onboarding_step' => 'legacy',
+            ]);
+            $user->load('ambassadorProfile');
+        }
+
         $referralLink = $user->referralLinks()->latest()->first();
 
         $clicks = $referralLink?->clicks()->count() ?? 0;
@@ -158,6 +175,9 @@ class AmbassadorDashboardController extends Controller
         $tier = $this->tierService->tierProgress($validatedEnrollments);
         $frontendBase = rtrim((string) config('app.frontend_url', config('app.url')), '/');
         $referralCode = $referralLink?->code;
+        $personalUrl = $referralCode
+            ? $frontendBase.'/formations?ref='.urlencode($referralCode)
+            : null;
 
         return response()->json([
             'profile' => [
@@ -175,12 +195,8 @@ class AmbassadorDashboardController extends Controller
             ],
             'referral' => [
                 'code' => $referralCode,
-                'personal_url' => $referralCode
-                    ? $frontendBase.'/formations?ref='.urlencode($referralCode)
-                    : null,
-                'display_url' => $referralCode
-                    ? $frontendBase.'/'.$referralCode
-                    : null,
+                'personal_url' => $personalUrl,
+                'display_url' => $personalUrl,
             ],
             'tier' => $tier,
             'earnings' => $earnings,
