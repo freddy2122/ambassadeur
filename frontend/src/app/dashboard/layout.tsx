@@ -4,8 +4,17 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { apiRequest, clearToken } from "@/lib/api";
+import { apiRequest } from "@/lib/api";
+import {
+  clearAuthSession,
+  consumeAuthFlash,
+  getAuthRole,
+  isAdminRole,
+  saveAuthSession,
+  setAuthFlash,
+} from "@/lib/auth/session";
 import { useClientTokenSnapshot } from "@/lib/useClientTokenSnapshot";
+import { useClientSearchParamsSnapshot } from "@/lib/useClientSearchParamsSnapshot";
 import { DashboardMobileNav } from "@/components/dashboard/DashboardMobileNav";
 import { Bell, LayoutDashboard, LogOut, Trophy, UserRound, Wallet } from "lucide-react";
 
@@ -28,8 +37,10 @@ const pageTitles: Record<string, string> = {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useClientSearchParamsSnapshot();
   const { isHydrated, hasToken } = useClientTokenSnapshot();
   const [partnerName, setPartnerName] = useState("Ambassadeur");
+  const [accessNotice, setAccessNotice] = useState<string | null>(null);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<Array<{
@@ -49,12 +60,46 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [isHydrated, hasToken, router]);
 
   useEffect(() => {
+    const flash = consumeAuthFlash();
+    const paramNotice = searchParams.get("notice");
+    if (flash) setAccessNotice(flash);
+    else if (paramNotice === "admin_only") {
+      setAccessNotice("Cet espace est réservé aux ambassadeurs. Utilisez /admin si vous êtes administrateur.");
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     if (!isHydrated || !hasToken) return;
-    apiRequest<{ profile?: { name?: string } }>("/me/profile", {}, true).then((res) => {
+
+    const storedRole = getAuthRole();
+    if (isAdminRole(storedRole)) {
+      setAuthFlash("Vous êtes connecté en tant qu'administrateur.");
+      router.replace("/admin");
+      return;
+    }
+
+    apiRequest<{ profile?: { name?: string; role?: string } }>("/me/profile", {}, true).then((res) => {
+      if (res.error?.includes("administrateur") || res.error?.includes("403")) {
+        setAuthFlash("Accès réservé à l'administration EIG.");
+        router.replace("/admin");
+        return;
+      }
+
+      const role = res.data?.profile?.role ?? "ambassador";
+      if (isAdminRole(role)) {
+        saveAuthSession(window.localStorage.getItem("auth_token") ?? "", role);
+        setAuthFlash("Vous êtes connecté en tant qu'administrateur.");
+        router.replace("/admin");
+        return;
+      }
+
+      const token = window.localStorage.getItem("auth_token");
+      if (token) saveAuthSession(token, role);
+
       const name = res.data?.profile?.name?.trim();
       if (name) setPartnerName(name);
     });
-  }, [isHydrated, hasToken]);
+  }, [isHydrated, hasToken, router]);
 
   useEffect(() => {
     if (!isHydrated || !hasToken) return;
@@ -108,7 +153,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <button
             type="button"
             onClick={() => {
-              clearToken();
+              clearAuthSession();
               router.push("/connexion");
             }}
             className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
@@ -186,6 +231,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </header>
 
+          {accessNotice ? (
+            <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              {accessNotice}
+            </div>
+          ) : null}
           {children}
         </div>
       </div>

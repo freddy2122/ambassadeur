@@ -1,4 +1,5 @@
 import type { ApiResult } from "@/lib/api";
+import { getAuthRole } from "@/lib/auth/session";
 import { DEMO_TOKEN } from "@/lib/demo/config";
 import {
   demoDashboard,
@@ -28,15 +29,23 @@ export async function mockApiRequest<T>(
   const [cleanPath] = path.split("?");
 
   if (cleanPath === "/auth/login" && method === "POST") {
-    return ok({ token: DEMO_TOKEN } as T);
+    let role = "ambassador";
+    try {
+      const body = JSON.parse(String(options.body ?? "{}")) as { login?: string; email?: string };
+      const id = (body.login ?? body.email ?? "").toLowerCase();
+      if (id.includes("admin")) role = "admin";
+    } catch {
+      role = "ambassador";
+    }
+    return ok({ token: DEMO_TOKEN, user: { role } } as T);
   }
 
   if (cleanPath === "/auth/register" && method === "POST") {
-    return ok({ message: "Compte créé (mode démo).", token: DEMO_TOKEN } as T);
+    return ok({ message: "Compte créé (mode démo).", token: DEMO_TOKEN, user: { role: "ambassador" } } as T);
   }
 
   if (cleanPath === "/auth/verify-code" && method === "POST") {
-    return ok({ token: DEMO_TOKEN, message: "Email vérifié (mode démo)." } as T);
+    return ok({ token: DEMO_TOKEN, message: "Email vérifié (mode démo).", user: { role: "ambassador" } } as T);
   }
 
   if (cleanPath === "/auth/resend-code" && method === "POST") {
@@ -59,7 +68,12 @@ export async function mockApiRequest<T>(
   if (cleanPath === "/me/leaderboard") return ok(demoLeaderboard as T);
   if (cleanPath === "/me/earnings") return ok(demoEarnings as T);
   if (cleanPath === "/me/payout-eligibility") return ok(demoPayoutEligibility as T);
-  if (cleanPath === "/me/profile" && method === "GET") return ok(demoProfile as T);
+  if (cleanPath === "/me/profile" && method === "GET") {
+    const role = getAuthRole() === "admin" ? "admin" : "ambassador";
+    return ok({
+      profile: { ...demoProfile.profile, role },
+    } as T);
+  }
   if (cleanPath === "/me/profile" && method === "PUT") {
     return ok({ message: "Profil mis à jour (mode démo).", requires_verification: false } as T);
   }

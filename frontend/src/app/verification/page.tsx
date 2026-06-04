@@ -2,13 +2,19 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiRequest, setToken } from "@/lib/api";
+import { apiRequest } from "@/lib/api";
+import {
+  homePathForRole,
+  roleFromLoginResponse,
+  saveAuthSession,
+} from "@/lib/auth/session";
 import { isDemoMode } from "@/lib/demo/config";
 import { useClientSearchParamsSnapshot } from "@/lib/useClientSearchParamsSnapshot";
 
 type VerifyResponse = {
   token?: string;
   message?: string;
+  user?: { role?: string | null };
 };
 
 export default function VerificationPage() {
@@ -31,8 +37,9 @@ export default function VerificationPage() {
       return;
     }
     if (res.data?.token) {
-      setToken(res.data.token);
-      router.push("/dashboard");
+      const role = roleFromLoginResponse(res.data.user);
+      saveAuthSession(res.data.token, role);
+      router.push(homePathForRole(role));
       return;
     }
     setMessage(res.data?.message ?? "Vérification terminée.");

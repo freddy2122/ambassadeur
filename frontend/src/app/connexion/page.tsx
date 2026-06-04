@@ -5,7 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { apiRequest, setToken } from "@/lib/api";
+import { apiRequest } from "@/lib/api";
+import {
+  homePathForRole,
+  roleFromLoginResponse,
+  saveAuthSession,
+} from "@/lib/auth/session";
 import { isDemoMode, DEMO_LOGIN_HINT } from "@/lib/demo/config";
 
 type LoginResponse = {
@@ -13,6 +18,7 @@ type LoginResponse = {
   message?: string;
   requires_verification?: boolean;
   email?: string;
+  user?: { role?: string | null };
 };
 
 export default function ConnexionPage() {
@@ -43,8 +49,9 @@ export default function ConnexionPage() {
     }
 
     if (result.data?.token) {
-      setToken(result.data.token);
-      router.push("/dashboard");
+      const role = roleFromLoginResponse(result.data.user);
+      saveAuthSession(result.data.token, role);
+      router.push(homePathForRole(role));
       return;
     }
 
@@ -65,9 +72,10 @@ export default function ConnexionPage() {
         <div className="absolute inset-0 flex items-end p-10 text-white">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-eig-cyan-light">EIG Ambassadors</p>
-            <h2 className="mt-2 text-3xl font-bold leading-tight">Espace ambassadeur</h2>
+            <h2 className="mt-2 text-3xl font-bold leading-tight">Connexion</h2>
             <p className="mt-3 max-w-md text-sm leading-relaxed text-white/90">
-              Consultez vos parrainages, vos commissions et vos demandes de retrait.
+              Un seul identifiant pour tous les comptes. Vous êtes redirigé vers l&apos;espace ambassadeur
+              ou l&apos;administration selon votre profil.
             </p>
           </div>
         </div>
@@ -79,11 +87,13 @@ export default function ConnexionPage() {
             <Image src="/favicon-32.png" alt="EIG" width={42} height={42} />
           </div>
           <h1 className="text-2xl font-bold text-eig-blue">Connexion</h1>
-          <p className="mt-1 text-sm text-slate-600">E-mail ou numéro WhatsApp enregistré à l&apos;inscription.</p>
+          <p className="mt-1 text-sm text-slate-600">
+            E-mail ou téléphone (ambassadeurs). Les comptes admin utilisent leur e-mail professionnel.
+          </p>
 
           {isDemoMode ? (
             <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-              Aperçu sans serveur : {DEMO_LOGIN_HINT.email} / {DEMO_LOGIN_HINT.password}
+              Aperçu : ambassadeur {DEMO_LOGIN_HINT.email} — admin : adresse contenant « admin »
             </p>
           ) : null}
 
@@ -131,7 +141,7 @@ export default function ConnexionPage() {
           </form>
 
           <p className="mt-4 text-sm text-slate-600">
-            Pas encore inscrit ?{" "}
+            Pas encore ambassadeur ?{" "}
             <Link href="/partenaires/inscription" className="font-semibold text-eig-blue hover:underline">
               Créer un compte
             </Link>

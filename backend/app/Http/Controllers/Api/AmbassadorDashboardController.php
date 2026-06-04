@@ -35,6 +35,7 @@ class AmbassadorDashboardController extends Controller
             'profile' => [
                 'name' => $user->name,
                 'email' => $user->email,
+                'role' => $user->role,
                 'email_verified' => $user->email_verified_at !== null,
                 'phone' => $user->ambassadorProfile?->phone,
                 'bio' => $user->ambassadorProfile?->bio,

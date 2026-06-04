@@ -2,9 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { Play } from "lucide-react";
-import { setToken } from "@/lib/api";
-import { cn } from "@/lib/cn";
+import { saveAuthSession } from "@/lib/auth/session";
 import { DEMO_TOKEN, isDemoMode } from "@/lib/demo/config";
+import { cn } from "@/lib/cn";
 
 type DemoAccessButtonProps = {
   className?: string;
@@ -22,7 +22,7 @@ export function DemoAccessButton({ className, size = "lg" }: DemoAccessButtonPro
   if (!isDemoMode) return null;
 
   function openDemo() {
-    setToken(DEMO_TOKEN);
+    saveAuthSession(DEMO_TOKEN, "ambassador");
     router.push("/dashboard");
   }
 

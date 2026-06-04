@@ -100,7 +100,12 @@ class AuthController extends Controller
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
-            'user' => $user,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
             'token' => $token,
         ]);
     }
@@ -253,9 +258,16 @@ class AuthController extends Controller
 
         $token = $user->fresh()->createToken('api-token')->plainTextToken;
 
+        $fresh = $user->fresh();
+
         return response()->json([
             'message' => 'Compte validé avec succès.',
-            'user' => $user->fresh(),
+            'user' => [
+                'id' => $fresh->id,
+                'name' => $fresh->name,
+                'email' => $fresh->email,
+                'role' => $fresh->role,
+            ],
             'token' => $token,
         ]);
     }
