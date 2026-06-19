@@ -69,7 +69,7 @@ export default function RegisterPage() {
     <div className="grid min-h-screen lg:grid-cols-2">
       <aside className="relative hidden lg:block">
         <Image
-          src="https://eiggroupe.com/wp-content/uploads/2025/04/stream-formation-certifiante.png"
+          src="/formations/stream-formation-certifiante.png"
           alt="Programme partenaire EIG"
           fill
           priority

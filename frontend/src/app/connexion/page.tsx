@@ -71,7 +71,7 @@ export default function ConnexionPage() {
     <div className="grid min-h-screen lg:grid-cols-2">
       <aside className="relative hidden lg:block">
         <Image
-          src="https://eiggroupe.com/wp-content/uploads/2025/04/stream-licence-pro.png"
+          src="/formations/stream-licence-pro.png"
           alt="EIG"
           fill
           priority

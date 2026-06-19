@@ -40,13 +40,22 @@ export const formationCategories: Array<{
   },
 ];
 
+/** Images hébergées localement (certificat SSL eiggroupe.com expiré). */
+const formationImages = {
+  licence: "/formations/stream-licence-pro.png",
+  certifiante: "/formations/stream-formation-certifiante.png",
+  continue: "/formations/stream-formation-continue.png",
+  marketing: "/formations/Frame-1171277778.png",
+  journalisme: "/formations/Frame-1171277778-3.png",
+} as const;
+
 export const formations: Formation[] = [
   {
     slug: "communication-visuelle-graphique-numerique",
     title: "Communication visuelle (Graphique et Numérique)",
     category: "licence",
     duration: "3 ans",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/stream-licence-pro.png",
+    imageUrl: formationImages.licence,
     excerpt: "Maîtrisez le branding, la direction artistique et les outils de création numérique pour produire des campagnes visuelles percutantes.",
     skills: ["Design graphique", "Direction artistique", "Branding", "Motion design"],
     defaultPricing: { annualFcfa: 742000, registrationFcfa: 49500 },
@@ -56,7 +65,7 @@ export const formations: Formation[] = [
     title: "Développement web, mobile et logiciel",
     category: "licence",
     duration: "3 ans",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/stream-formation-certifiante.png",
+    imageUrl: formationImages.certifiante,
     excerpt: "Développez des applications modernes, robustes et orientées produit, du front-end au back-end, sur web et mobile.",
     skills: ["Frontend", "Backend", "API", "Mobile"],
     defaultPricing: { annualFcfa: 788000, registrationFcfa: 55000 },
@@ -118,7 +127,7 @@ export const formations: Formation[] = [
     title: "Réalisation Cinéma et Télévision",
     category: "licence",
     duration: "3 ans",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/stream-formation-continue.png",
+    imageUrl: formationImages.continue,
     excerpt: "Apprenez l’écriture audiovisuelle, la réalisation, le cadrage et le montage pour créer des contenus impactants.",
     skills: ["Scénario", "Réalisation", "Montage", "Post-production"],
     defaultPricing: { annualFcfa: 768000, registrationFcfa: 52000 },
@@ -128,7 +137,7 @@ export const formations: Formation[] = [
     title: "Marketing et Communication digitale",
     category: "licence",
     duration: "3 ans",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/Frame-1171277778.png",
+    imageUrl: formationImages.marketing,
     excerpt: "Concevez des stratégies digitales orientées performance pour développer la visibilité et la conversion des marques.",
     skills: ["Social media", "Paid ads", "Content", "Analytics"],
     defaultPricing: { annualFcfa: 732000, registrationFcfa: 48500 },
@@ -138,7 +147,7 @@ export const formations: Formation[] = [
     title: "Journalisme Multimédia",
     category: "licence",
     duration: "3 ans",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/Frame-1171277778-3.png",
+    imageUrl: formationImages.journalisme,
     excerpt: "Formez-vous au reportage numérique, à la narration interactive et aux formats éditoriaux web-first.",
     skills: ["Rédaction", "Interview", "Data journalisme", "Storytelling"],
     defaultPricing: { annualFcfa: 718000, registrationFcfa: 47500 },
@@ -148,7 +157,7 @@ export const formations: Formation[] = [
     title: "Design Graphique",
     category: "certifiante",
     duration: "1 an",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/stream-formation-certifiante.png",
+    imageUrl: formationImages.certifiante,
     excerpt:
       "Une formation intensive pour maîtriser les fondamentaux du design, de l'identité visuelle et de la production créative.",
     skills: ["PAO", "Identité visuelle", "Brand assets", "Création publicitaire"],
@@ -159,7 +168,7 @@ export const formations: Formation[] = [
     title: "UI/UX Design",
     category: "certifiante",
     duration: "1 an",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/stream-formation-certifiante.png",
+    imageUrl: formationImages.certifiante,
     excerpt:
       "Apprenez à concevoir des parcours utilisateurs fluides, des interfaces modernes et des prototypes prêts à tester.",
     skills: ["UX research", "UI design", "Figma", "Prototypage"],
@@ -170,7 +179,7 @@ export const formations: Formation[] = [
     title: "Développement Web et mobile",
     category: "certifiante",
     duration: "1 an",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/stream-formation-certifiante.png",
+    imageUrl: formationImages.certifiante,
     excerpt:
       "Maîtrisez les bases solides du développement d'applications web et mobiles orientées besoins métiers.",
     skills: ["HTML/CSS", "JavaScript", "API", "Mobile"],
@@ -181,7 +190,7 @@ export const formations: Formation[] = [
     title: "Montage Vidéo",
     category: "certifiante",
     duration: "1 an",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/stream-formation-certifiante.png",
+    imageUrl: formationImages.certifiante,
     excerpt:
       "Développez vos compétences en montage, storytelling visuel et post-production pour des contenus professionnels.",
     skills: ["Montage", "Post-production", "Storytelling", "Habillage"],
@@ -192,7 +201,7 @@ export const formations: Formation[] = [
     title: "Sérigraphie",
     category: "certifiante",
     duration: "1 an",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/stream-formation-certifiante.png",
+    imageUrl: formationImages.certifiante,
     excerpt:
       "Initiez-vous aux techniques de sérigraphie pour produire des supports imprimés créatifs et de qualité.",
     skills: ["Impression", "Pré-presse", "Encres", "Production"],
@@ -203,7 +212,7 @@ export const formations: Formation[] = [
     title: "Photographie et Cadrage",
     category: "certifiante",
     duration: "1 an",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/stream-formation-certifiante.png",
+    imageUrl: formationImages.certifiante,
     excerpt:
       "Apprenez à capturer des visuels percutants grâce à la maîtrise de la lumière, du cadrage et de la direction artistique.",
     skills: ["Cadrage", "Lumière", "Prise de vue", "Retouche"],
@@ -214,7 +223,7 @@ export const formations: Formation[] = [
     title: "Graphisme PAO",
     category: "continue",
     duration: "3 mois",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/stream-formation-continue.png",
+    imageUrl: formationImages.continue,
     excerpt:
       "Un format court pour renforcer vos bases en création visuelle et publication assistée par ordinateur.",
     skills: ["PAO", "Mise en page", "Création visuelle", "Workflow print"],
@@ -225,7 +234,7 @@ export const formations: Formation[] = [
     title: "UI/UX Design",
     category: "continue",
     duration: "3 mois",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/stream-formation-continue.png",
+    imageUrl: formationImages.continue,
     excerpt:
       "Un format court orienté produit pour apprendre la recherche utilisateur, le design d'interface et le prototypage.",
     skills: ["UX research", "Wireframes", "Prototypage", "Design system"],
@@ -236,7 +245,7 @@ export const formations: Formation[] = [
     title: "Montage Vidéo",
     category: "continue",
     duration: "3 mois",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/stream-formation-continue.png",
+    imageUrl: formationImages.continue,
     excerpt:
       "Perfectionnez vos techniques de montage et de narration pour produire des vidéos engageantes rapidement.",
     skills: ["Montage", "Transitions", "Sound design", "Formats réseaux"],
@@ -247,7 +256,7 @@ export const formations: Formation[] = [
     title: "Conception et déploiement des campagnes de communication",
     category: "continue",
     duration: "3 mois",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/stream-formation-continue.png",
+    imageUrl: formationImages.continue,
     excerpt:
       "Construisez des campagnes multi-canales de la stratégie à l'exécution avec une approche orientée résultats.",
     skills: ["Stratégie", "Plan média", "Exécution", "Mesure"],
@@ -258,7 +267,7 @@ export const formations: Formation[] = [
     title: "Analyse de données avec python",
     category: "continue",
     duration: "3 mois",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/stream-formation-continue.png",
+    imageUrl: formationImages.continue,
     excerpt:
       "Apprenez à manipuler, analyser et visualiser des données avec Python pour mieux piloter les décisions.",
     skills: ["Python", "Pandas", "Data viz", "Analyse"],
@@ -269,7 +278,7 @@ export const formations: Formation[] = [
     title: "WordPress",
     category: "continue",
     duration: "3 mois",
-    imageUrl: "https://eiggroupe.com/wp-content/uploads/2025/04/stream-formation-continue.png",
+    imageUrl: formationImages.continue,
     excerpt:
       "Créez et administrez des sites web performants avec WordPress, du thème aux extensions essentielles.",
     skills: ["CMS", "Thèmes", "Plugins", "SEO basics"],
