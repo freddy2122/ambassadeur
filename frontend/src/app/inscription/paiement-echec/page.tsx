@@ -9,11 +9,19 @@ const RAISONS: Record<string, string> = {
   reference_manquante: "La référence de dossier était absente après le paiement.",
   lead_introuvable: "Ce dossier n’a pas été retrouvé. Contactez l’école avec votre mail de paiement.",
   verification: "Le paiement n’a pas été confirmé (annulé, en attente ou refusé). Si vous avez été débité·e, gardez le reçu et contactez nous.",
+  verification_pending: "Votre paiement est encore en cours de confirmation. Attendez quelques minutes puis réessayez, ou contactez nous avec votre reçu.",
 };
 
 function PaiementEchecContent() {
   const searchParams = useSearchParams();
   const raison = searchParams.get("raison") ?? "";
+  const statut = searchParams.get("statut") ?? "";
+
+  const message =
+    raison === "verification" && (statut === "pending" || statut === "processing")
+      ? RAISONS.verification_pending
+      : RAISONS[raison] ??
+        "Le retour depuis la page de paiement n'a pas permis de valider la transaction. Vous pouvez réessayer depuis le lien d'inscription envoyé par votre référent.";
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-[#f8eef0] via-white to-[#e8eef9] px-6 py-12 text-center">
@@ -27,10 +35,7 @@ function PaiementEchecContent() {
           </svg>
         </div>
         <h1 className="text-xl font-extrabold text-[#0b2e7a] md:text-2xl">Paiement non finalisé</h1>
-        <p className="mt-3 text-sm leading-relaxed text-slate-600">
-          {RAISONS[raison] ??
-            "Le retour depuis la page de paiement n’a pas permis de valider la transaction. Vous pouvez réessayer depuis le lien d’inscription envoyé par votre référent."}
-        </p>
+        <p className="mt-3 text-sm leading-relaxed text-slate-600">{message}</p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link
             href="/formations"

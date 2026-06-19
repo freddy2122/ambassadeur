@@ -109,14 +109,26 @@ class GeniusPayPaymentController extends Controller
             return redirect()->away($frontendBase.'/inscription/paiement-reussi?lead_id='.$lead->id);
         }
 
-        $reference = (string) ($lead->payment_reference ?? '');
+        $reference = (string) ($request->query('reference') ?? $lead->payment_reference ?? '');
         if ($reference === '') {
             return redirect()->away($frontendBase.'/inscription/paiement-echec?raison=verification');
         }
 
-        $payment = $this->geniusPay->retrievePayment($reference);
-        if ($payment === null || ! $this->geniusPay->isPaymentCompleted($payment)) {
+        if ((string) $lead->payment_reference !== $reference) {
+            $lead->update(['payment_reference' => $reference]);
+        }
+
+        $payment = $this->geniusPay->retrievePaymentWithRetry($reference);
+        if ($payment === null) {
             return redirect()->away($frontendBase.'/inscription/paiement-echec?raison=verification');
+        }
+
+        if (! $this->geniusPay->isPaymentCompleted($payment)) {
+            $paymentStatus = strtolower((string) ($payment['status'] ?? 'inconnu'));
+
+            return redirect()->away(
+                $frontendBase.'/inscription/paiement-echec?raison=verification&statut='.rawurlencode($paymentStatus),
+            );
         }
 
         $frontendBase = FrontendUrl::resolveOrigin(
@@ -125,7 +137,7 @@ class GeniusPayPaymentController extends Controller
         );
 
         $metaLead = (int) (data_get($payment, 'metadata.lead_id') ?? 0);
-        if ($metaLead !== $lead->id) {
+        if ($metaLead > 0 && $metaLead !== $lead->id) {
             return redirect()->away($frontendBase.'/inscription/paiement-echec?raison=verification');
         }
 

@@ -193,7 +193,38 @@ class GeniusPayService
 
     public function isPaymentCompleted(array $payment): bool
     {
-        return strtolower((string) ($payment['status'] ?? '')) === 'completed';
+        $status = strtolower((string) ($payment['status'] ?? ''));
+
+        return in_array($status, ['completed', 'paid', 'successful', 'success'], true);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function retrievePaymentWithRetry(string $reference, int $attempts = 5, int $sleepMs = 1500): ?array
+    {
+        $attempts = max(1, $attempts);
+
+        for ($i = 0; $i < $attempts; $i++) {
+            $payment = $this->retrievePayment($reference);
+            if ($payment === null) {
+                return null;
+            }
+
+            if ($this->isPaymentCompleted($payment)) {
+                return $payment;
+            }
+
+            $status = strtolower((string) ($payment['status'] ?? ''));
+            $retryable = in_array($status, ['pending', 'processing'], true);
+            if (! $retryable || $i === $attempts - 1) {
+                return $payment;
+            }
+
+            usleep(max(200, $sleepMs) * 1000);
+        }
+
+        return null;
     }
 
     public function verifyWebhookSignature(Request $request): bool
