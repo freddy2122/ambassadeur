@@ -114,16 +114,22 @@ class GeniusPayPaymentController extends Controller
             return redirect()->away($frontendBase.'/inscription/paiement-echec?raison=verification');
         }
 
+        $storedReference = (string) ($lead->payment_reference ?? '');
+
         if ((string) $lead->payment_reference !== $reference) {
             $lead->update(['payment_reference' => $reference]);
         }
 
         $payment = $this->geniusPay->retrievePaymentWithRetry($reference);
-        if ($payment === null) {
-            return redirect()->away($frontendBase.'/inscription/paiement-echec?raison=verification');
-        }
+        $verified = $payment !== null && $this->geniusPay->isPaymentCompleted($payment);
+        $sandboxTrusted = ! $verified
+            && $this->geniusPay->shouldTrustSandboxCallback($reference, $status, $storedReference);
 
-        if (! $this->geniusPay->isPaymentCompleted($payment)) {
+        if (! $verified && ! $sandboxTrusted) {
+            if ($payment === null) {
+                return redirect()->away($frontendBase.'/inscription/paiement-echec?raison=verification');
+            }
+
             $paymentStatus = strtolower((string) ($payment['status'] ?? 'inconnu'));
 
             return redirect()->away(
@@ -136,9 +142,11 @@ class GeniusPayPaymentController extends Controller
                 ?? (is_string($request->query('frontend_origin')) ? $request->query('frontend_origin') : null),
         );
 
-        $metaLead = (int) (data_get($payment, 'metadata.lead_id') ?? 0);
-        if ($metaLead > 0 && $metaLead !== $lead->id) {
-            return redirect()->away($frontendBase.'/inscription/paiement-echec?raison=verification');
+        if ($verified) {
+            $metaLead = (int) (data_get($payment, 'metadata.lead_id') ?? 0);
+            if ($metaLead > 0 && $metaLead !== $lead->id) {
+                return redirect()->away($frontendBase.'/inscription/paiement-echec?raison=verification');
+            }
         }
 
         $this->fulfillLeadEnrollment->execute($lead);
@@ -168,11 +176,29 @@ class GeniusPayPaymentController extends Controller
         }
 
         $payment = $this->geniusPay->retrievePayment($reference);
-        if ($payment === null || ! $this->geniusPay->isPaymentCompleted($payment)) {
+        $verified = $payment !== null && $this->geniusPay->isPaymentCompleted($payment);
+
+        $leadId = (int) (
+            data_get($payment, 'metadata.lead_id')
+            ?? data_get($paymentData, 'metadata.lead_id')
+            ?? 0
+        );
+
+        if (! $verified && GeniusPayService::isSandboxReference($reference)) {
+            $leadId = (int) (
+                data_get($paymentData, 'metadata.lead_id')
+                ?? data_get($request->json()->all(), 'data.metadata.lead_id')
+                ?? $leadId
+            );
+            $verified = in_array($event, ['payment.success', 'payment.completed'], true)
+                && $leadId > 0
+                && (bool) config('services.geniuspay.sandbox', true);
+        }
+
+        if (! $verified) {
             return response()->json(['received' => true]);
         }
 
-        $leadId = (int) (data_get($payment, 'metadata.lead_id') ?? 0);
         if ($leadId < 1) {
             return response()->json(['received' => true]);
         }

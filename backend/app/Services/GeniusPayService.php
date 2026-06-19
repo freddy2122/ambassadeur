@@ -24,7 +24,7 @@ class GeniusPayService
 
     private function baseUrl(): string
     {
-        return rtrim((string) config('services.geniuspay.base_url', 'https://pay.genius.ci/api/v1/merchant'), '/');
+        return rtrim((string) config('services.geniuspay.base_url', 'https://geniuspay.ci/api/v1/merchant'), '/');
     }
 
     private function payoutWalletId(): string
@@ -191,6 +191,28 @@ class GeniusPayService
         return $data !== [] ? $data : null;
     }
 
+    public static function isSandboxReference(string $reference): bool
+    {
+        return str_starts_with(strtoupper(trim($reference)), 'SANDBOX_');
+    }
+
+    /**
+     * GeniusPay v3 sandbox : les refs SANDBOX_* ne sont pas consultables via GET /payments/{ref}.
+     * On valide le retour success_url si la ref correspond au dossier.
+     */
+    public function shouldTrustSandboxCallback(string $reference, string $status, string $storedReference): bool
+    {
+        if ($status === 'error' || ! self::isSandboxReference($reference)) {
+            return false;
+        }
+
+        if ($storedReference !== '' && $storedReference !== $reference) {
+            return false;
+        }
+
+        return (bool) config('services.geniuspay.sandbox', true);
+    }
+
     public function isPaymentCompleted(array $payment): bool
     {
         $status = strtolower((string) ($payment['status'] ?? ''));
@@ -203,6 +225,10 @@ class GeniusPayService
      */
     public function retrievePaymentWithRetry(string $reference, int $attempts = 5, int $sleepMs = 1500): ?array
     {
+        if (self::isSandboxReference($reference)) {
+            return $this->retrievePayment($reference);
+        }
+
         $attempts = max(1, $attempts);
 
         for ($i = 0; $i < $attempts; $i++) {
