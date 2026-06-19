@@ -18,7 +18,7 @@ export function SiteHeader() {
   const { hasToken: isAuthenticated } = useClientTokenSnapshot();
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-eig-yellow/40 bg-white/95 shadow-sm backdrop-blur">
       <nav className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4 md:h-16">
         <Link href="/" className="flex items-center gap-2">
           <Image src="/eig-logo.svg" alt="EIG Ambassadors" width={108} height={35} priority />
@@ -26,7 +26,7 @@ export function SiteHeader() {
 
         <div className="hidden items-center gap-5 text-sm font-medium text-slate-700 md:flex">
           {navLinks.map((link) => (
-            <Link key={link.href} href={link.href} className="transition-colors hover:text-eig-blue">
+            <Link key={link.href} href={link.href} className="transition-colors hover:text-eig-blue hover:underline decoration-eig-yellow decoration-2 underline-offset-4">
               {link.label}
             </Link>
           ))}
@@ -34,13 +34,13 @@ export function SiteHeader() {
             <>
               <Link
                 href="/partenaires/inscription"
-                className="rounded-xl bg-eig-blue px-4 py-2 text-white transition-colors hover:bg-eig-blue-light"
+                className="rounded-xl bg-eig-yellow-light px-4 py-2 font-semibold text-eig-blue ring-1 ring-eig-yellow/60 transition-colors hover:bg-eig-yellow/45"
               >
                 S&apos;inscrire
               </Link>
               <Link
                 href="/connexion"
-                className="rounded-xl border border-slate-300 px-4 py-2 transition-colors hover:border-eig-blue hover:text-eig-blue"
+                className="rounded-xl border border-eig-blue/20 bg-eig-blue px-4 py-2 text-white ring-1 ring-eig-yellow/40 transition-colors hover:bg-eig-blue-light"
               >
                 Se connecter
               </Link>
@@ -48,7 +48,7 @@ export function SiteHeader() {
           ) : (
             <Link
               href="/dashboard"
-              className="rounded-xl bg-eig-blue px-4 py-2 text-white transition-colors hover:bg-eig-blue-light"
+              className="rounded-xl bg-eig-blue px-4 py-2 text-white ring-1 ring-eig-yellow/40 transition-colors hover:bg-eig-blue-light"
             >
               Mon espace
             </Link>
@@ -78,14 +78,14 @@ export function SiteHeader() {
                 <Link
                   href="/partenaires/inscription"
                   onClick={() => setOpen(false)}
-                  className="rounded-xl bg-eig-blue px-4 py-2 text-center text-white"
+                  className="rounded-xl bg-eig-yellow-light px-4 py-2 text-center font-semibold text-eig-blue ring-1 ring-eig-yellow/60"
                 >
                   Devenir Ambassadeur
                 </Link>
                 <Link
                   href="/connexion"
                   onClick={() => setOpen(false)}
-                  className="rounded-xl border border-slate-300 px-4 py-2 text-center"
+                  className="rounded-xl border border-eig-blue/20 bg-eig-blue px-4 py-2 text-center text-white"
                 >
                   Se connecter
                 </Link>
@@ -95,7 +95,7 @@ export function SiteHeader() {
                 <Link
                   href="/dashboard"
                   onClick={() => setOpen(false)}
-                  className="inline-flex w-full justify-center rounded-xl bg-eig-blue px-4 py-2 text-white"
+                  className="inline-flex w-full justify-center rounded-xl bg-eig-blue px-4 py-2 text-white ring-1 ring-eig-yellow/40"
                 >
                   Mon espace
                 </Link>

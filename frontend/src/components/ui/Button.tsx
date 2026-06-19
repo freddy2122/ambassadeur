@@ -7,10 +7,10 @@ type ButtonVariant = "primary" | "secondary" | "outline" | "ghost";
 type ButtonSize = "sm" | "md" | "lg";
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-white text-eig-blue hover:bg-slate-50",
-  secondary: "bg-eig-blue text-white hover:bg-eig-blue-light",
-  outline: "border border-white/60 bg-transparent text-white hover:bg-white/10",
-  ghost: "bg-transparent text-eig-blue hover:bg-slate-100",
+  primary: "bg-eig-yellow-light text-eig-blue ring-1 ring-eig-yellow/60 hover:bg-eig-yellow/45",
+  secondary: "bg-eig-blue text-white ring-1 ring-eig-yellow/50 hover:bg-eig-blue-light",
+  outline: "border border-white/70 bg-transparent text-white hover:bg-white/10 ring-1 ring-eig-yellow/40",
+  ghost: "bg-transparent text-eig-blue hover:bg-eig-yellow-light/70",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -46,7 +46,7 @@ export function Button({
 }: ButtonProps) {
   const classes = cn(
     "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-colors duration-200",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eig-cyan focus-visible:ring-offset-2",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eig-yellow focus-visible:ring-offset-2",
     "disabled:pointer-events-none disabled:opacity-50",
     variantClasses[variant],
     sizeClasses[size],

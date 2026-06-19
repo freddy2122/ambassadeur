@@ -44,8 +44,9 @@ export function FormationsListing({ pricingCatalog }: Props) {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5">
-        <h1 className="text-2xl font-extrabold text-[#0b2e7a]">Nos formations</h1>
+      <section className="rounded-2xl border border-eig-yellow/40 bg-white p-4 md:p-5">
+        <p className="text-xs font-semibold uppercase tracking-wide text-eig-blue">Catalogue EIG</p>
+        <h1 className="mt-1 text-2xl font-extrabold text-eig-blue">Nos formations</h1>
         <p className="mt-1 text-sm text-slate-600">
           Choisissez un parcours orienté pratique et employabilité.
         </p>
@@ -55,10 +56,10 @@ export function FormationsListing({ pricingCatalog }: Props) {
             <Link
               key={cat.id}
               href={withRef(`/formations?category=${cat.id}`)}
-              className={`rounded-md border px-3 py-2 text-sm font-medium hover:bg-slate-100 ${
+              className={`rounded-md border px-3 py-2 text-sm font-medium hover:bg-eig-yellow-light/60 ${
                 selected === cat.id
-                  ? "border-[#0b2e7a] bg-[#0b2e7a] text-white"
-                  : "border-slate-200 bg-slate-50 text-slate-700"
+                  ? "border-eig-blue bg-eig-blue text-white ring-1 ring-eig-yellow/50"
+                  : "border-eig-yellow/40 bg-eig-yellow-light/30 text-slate-700"
               }`}
             >
               {cat.label}
@@ -66,10 +67,10 @@ export function FormationsListing({ pricingCatalog }: Props) {
           ))}
           <Link
             href={withRef("/formations")}
-            className={`rounded-md border px-3 py-2 text-sm font-medium hover:bg-slate-100 ${
+            className={`rounded-md border px-3 py-2 text-sm font-medium hover:bg-eig-yellow-light/60 ${
               !selected
-                ? "border-[#0b2e7a] bg-[#0b2e7a] text-white"
-                : "border-slate-200 bg-slate-50 text-slate-700"
+                ? "border-eig-blue bg-eig-blue text-white ring-1 ring-eig-yellow/50"
+                : "border-eig-yellow/40 bg-eig-yellow-light/30 text-slate-700"
             }`}
           >
             Toutes les formations
@@ -92,7 +93,7 @@ export function FormationsListing({ pricingCatalog }: Props) {
           return (
             <article
               key={formation.slug}
-              className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+              className="overflow-hidden rounded-2xl border border-eig-yellow/35 bg-white shadow-sm"
             >
               <Image
                 src={formation.imageUrl}
@@ -102,12 +103,12 @@ export function FormationsListing({ pricingCatalog }: Props) {
                 className="h-44 w-full object-cover"
               />
               <div className="p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#16aee5]">
+                <p className="text-xs font-semibold uppercase tracking-wide text-eig-blue">
                   {formation.category} · {formation.duration}
                 </p>
-                <h2 className="mt-1 text-lg font-bold text-[#0b2e7a]">{formation.title}</h2>
+                <h2 className="mt-1 text-lg font-bold text-eig-blue">{formation.title}</h2>
                 <p className="mt-2 text-sm text-slate-700">{formation.excerpt}</p>
-                <p className="mt-2 text-sm font-bold text-[#0b2e7a]">
+                <p className="mt-2 text-sm font-bold text-eig-blue">
                   {displayedPrice.toLocaleString("fr-FR")} FCFA
                   {crossedBase != null ? (
                     <span className="ml-2 text-xs font-medium text-slate-500 line-through">
@@ -120,7 +121,7 @@ export function FormationsListing({ pricingCatalog }: Props) {
                   {formation.skills.slice(0, 3).map((skill) => (
                     <span
                       key={skill}
-                      className="rounded-full bg-[#e8f8ff] px-2 py-1 text-xs font-medium text-[#0b2e7a]"
+                      className="rounded-full bg-eig-yellow-light px-2 py-1 text-xs font-medium text-eig-blue ring-1 ring-eig-yellow/40"
                     >
                       {skill}
                     </span>
@@ -129,7 +130,7 @@ export function FormationsListing({ pricingCatalog }: Props) {
 
                 <Link
                   href={withRef(`/formations/${formation.slug}`)}
-                  className="mt-4 inline-flex rounded-md bg-[#0b2e7a] px-3 py-2 text-sm font-semibold text-white"
+                  className="mt-4 inline-flex rounded-md bg-eig-blue px-3 py-2 text-sm font-semibold text-white ring-1 ring-eig-yellow/45 hover:bg-eig-blue-light"
                 >
                   Voir le détail
                 </Link>

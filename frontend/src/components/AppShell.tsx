@@ -40,8 +40,8 @@ export function AppShell({ children }: AppShellProps) {
     <>
       <DemoBanner />
       <SiteHeader />
-      <main className="mx-auto w-full max-w-6xl px-4 pt-20 pb-24 md:pt-24 md:pb-8">{children}</main>
-      <footer id="contact" className="border-t border-slate-200">
+      <main className="mx-auto w-full max-w-6xl bg-gradient-to-b from-eig-yellow-light/20 to-white px-4 pt-20 pb-24 md:pt-24 md:pb-8">{children}</main>
+      <footer id="contact" className="border-t border-eig-yellow/40 bg-eig-yellow-light/25">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-6 text-sm text-slate-600">
           <p>© EIG Ambassadeur.</p>
           <p>contact@eiggroupe.com</p>

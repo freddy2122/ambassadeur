@@ -18,16 +18,16 @@ export default async function Home() {
 
   return (
     <div className="space-y-10 md:space-y-14">
-      <section id="hero" className="overflow-hidden rounded-eig-lg border border-eig-blue bg-eig-blue shadow-eig-lg">
+      <section id="hero" className="overflow-hidden rounded-eig-lg border border-eig-blue bg-eig-blue shadow-eig-lg ring-1 ring-eig-yellow/30">
         <div className="relative p-6 md:p-10">
-          <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-eig-cyan/10 blur-2xl" />
-          <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-white/5 blur-2xl" />
+          <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-eig-yellow/25 blur-2xl" />
+          <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-eig-cyan/10 blur-2xl" />
 
           <div className="relative">
             <div className="mb-6 flex items-center gap-3">
               <Image src="/eig-logo.svg" alt="EIG" width={120} height={40} priority className="brightness-0 invert" />
               <span className="hidden h-5 w-px bg-white/30 sm:block" />
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-eig-cyan-light sm:text-sm">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-eig-yellow sm:text-sm">
                 Programme Ambassadeur
               </p>
             </div>
@@ -44,7 +44,7 @@ export default async function Home() {
               <Button href="/partenaires/inscription" variant="primary" size="lg">
                 S&apos;inscrire
               </Button>
-              <Button href="/connexion" variant="outline" size="lg">
+              <Button href="/connexion" variant="secondary" size="lg">
                 Se connecter
               </Button>
               <DemoAccessButton size="lg" />
@@ -72,7 +72,7 @@ export default async function Home() {
         </section>
       ) : null}
 
-      <section id="comment" className="rounded-eig-lg border border-slate-200 bg-white p-6 md:p-8">
+      <section id="comment" className="rounded-eig-lg border border-eig-yellow/40 bg-white p-6 md:p-8">
         <SectionHeading
           title="Comment ça marche"
           subtitle="Le parcours, de l'inscription au versement des commissions."
@@ -98,7 +98,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section id="recompenses" className="rounded-eig-lg border border-slate-200 bg-eig-surface p-6 md:p-8">
+      <section id="recompenses" className="rounded-eig-lg border border-eig-yellow/40 bg-eig-yellow-light/25 p-6 md:p-8">
         <SectionHeading
           title="Niveaux ambassadeur"
           subtitle="Le palier dépend du nombre d'inscriptions validées sur votre code."
@@ -111,8 +111,9 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="rounded-eig-lg bg-gradient-to-r from-eig-blue to-eig-blue-light p-6 text-center md:p-10">
-        <h2 className="text-2xl font-extrabold text-white md:text-3xl">Créer votre compte ambassadeur</h2>
+      <section className="rounded-eig-lg border border-eig-blue bg-eig-blue p-6 text-center ring-1 ring-eig-yellow/35 md:p-10">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-eig-yellow">Rejoignez le programme</p>
+        <h2 className="mt-2 text-2xl font-extrabold text-white md:text-3xl">Créer votre compte ambassadeur</h2>
         <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-blue-100 md:text-base">
           L&apos;inscription est gratuite. Vous recevez votre code personnel dès la validation de votre e-mail.
         </p>

@@ -34,7 +34,7 @@ export function ProgressBar({
       ) : null}
       <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
         <div
-          className={cn("h-full rounded-full bg-gradient-to-r from-eig-cyan to-eig-blue transition-all duration-500", barClassName)}
+          className={cn("h-full rounded-full bg-gradient-to-r from-eig-yellow to-eig-blue transition-all duration-500", barClassName)}
           style={{ width: `${percent}%` }}
           role="progressbar"
           aria-valuenow={value}

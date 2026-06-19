@@ -16,7 +16,7 @@ export function FormationCtaLinks({ formationSlug }: Props) {
         href={`/inscription?formation=${encodeURIComponent(formationSlug)}${
           ref ? `&code=${encodeURIComponent(ref)}` : ""
         }`}
-        className="rounded-md bg-[#0b2e7a] px-4 py-2 text-sm font-semibold text-white"
+        className="rounded-md bg-eig-blue px-4 py-2 text-sm font-semibold text-white ring-1 ring-eig-yellow/45 hover:bg-eig-blue-light"
       >
         S&apos;inscrire à cette formation
       </Link>

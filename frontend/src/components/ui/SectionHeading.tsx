@@ -20,9 +20,11 @@ export function SectionHeading({
   return (
     <div className={cn(align === "center" && "text-center", className)}>
       {eyebrow ? (
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-eig-cyan">{eyebrow}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-eig-blue">{eyebrow}</p>
       ) : null}
-      <h2 className={cn("mt-1 text-2xl font-extrabold text-eig-blue md:text-3xl", titleClassName)}>{title}</h2>
+      <h2 className={cn("mt-1 text-2xl font-extrabold text-eig-blue md:text-3xl", titleClassName)}>
+        <span className="box-decoration-clone bg-eig-yellow/35 px-1">{title}</span>
+      </h2>
       {subtitle ? <p className={cn("mt-2 text-sm text-eig-muted md:text-base", align === "center" && "mx-auto max-w-2xl")}>{subtitle}</p> : null}
     </div>
   );

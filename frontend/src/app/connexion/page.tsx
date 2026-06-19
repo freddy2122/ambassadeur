@@ -144,7 +144,7 @@ export default function ConnexionPage() {
             <SubmitButton
               loading={submitting}
               loadingLabel="Connexion en cours…"
-              className="w-full rounded-xl bg-eig-blue px-4 py-2.5 text-sm text-white hover:bg-eig-blue-light"
+              className="w-full rounded-xl bg-eig-blue px-4 py-2.5 text-sm text-white ring-1 ring-eig-yellow/45 hover:bg-eig-blue-light"
             >
               Se connecter
             </SubmitButton>
