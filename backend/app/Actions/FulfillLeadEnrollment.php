@@ -5,11 +5,16 @@ namespace App\Actions;
 use App\Models\Enrollment;
 use App\Models\FormationPricing;
 use App\Models\Lead;
+use App\Services\CommissionService;
 use App\Support\FormationProgramType;
 use Illuminate\Support\Facades\DB;
 
 final class FulfillLeadEnrollment
 {
+    public function __construct(
+        private readonly CommissionService $commissionService,
+    ) {}
+
     /**
      * Idempotent : verrouillage du lead pour eviter double inscription (webhook + callback).
      */
@@ -28,7 +33,9 @@ final class FulfillLeadEnrollment
             ]);
 
             $slug = $locked->formation_slug;
-            $programType = FormationProgramType::fromSlug($slug);
+            $programType = in_array($locked->program_type, ['superieur', 'centre', 'college'], true)
+                ? $locked->program_type
+                : FormationProgramType::fromSlug($slug);
 
             $referralLink = $locked->referralLink()->with('ambassador')->first();
             $ambassadorId = $referralLink?->ambassador_id;
@@ -49,13 +56,15 @@ final class FulfillLeadEnrollment
                     : 0;
             }
 
-            Enrollment::create([
+            $enrollment = Enrollment::create([
                 'ambassador_id' => $ambassadorId,
                 'lead_id' => $locked->id,
                 'program_type' => $programType,
                 'tuition_amount' => $tuition,
                 'validated_at' => now(),
             ]);
+
+            $this->commissionService->accrueForEnrollment($enrollment);
         });
     }
 }

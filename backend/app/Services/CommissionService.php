@@ -34,14 +34,13 @@ class CommissionService
             }
 
             $totalEnrollments = $enrollments->count();
+            $grossAmount = $this->calculateGrossForEnrollments($ambassador->id, $enrollments);
             $programType = $this->getMajorProgramType($enrollments);
             $rule = $this->resolveRule($programType, $totalEnrollments);
 
-            if (! $rule) {
+            if (! $rule || $grossAmount <= 0) {
                 continue;
             }
-
-            $grossAmount = $totalEnrollments * (float) $rule->amount_per_enrollment;
 
             $commission = Commission::query()->firstOrNew([
                 'ambassador_id' => $ambassador->id,
@@ -58,6 +57,75 @@ class CommissionService
         }
 
         return $createdCommissions;
+    }
+
+    public function accrueForEnrollment(Enrollment $enrollment): ?Commission
+    {
+        if (! $enrollment->validated_at || ! $enrollment->ambassador_id) {
+            return null;
+        }
+
+        $validatedAt = Carbon::parse($enrollment->validated_at);
+        $amount = $this->amountForEnrollment($enrollment->ambassador_id, (string) $enrollment->program_type, $validatedAt);
+
+        if ($amount <= 0) {
+            return null;
+        }
+
+        $periodMonth = $validatedAt->format('Y-m');
+
+        $commission = Commission::query()->firstOrNew([
+            'ambassador_id' => $enrollment->ambassador_id,
+            'period_month' => $periodMonth,
+        ]);
+
+        $commission->gross_amount = (float) ($commission->gross_amount ?? 0) + $amount;
+        $commission->validated_enrollments = (int) ($commission->validated_enrollments ?? 0) + 1;
+
+        $countAtValidation = $this->validatedCountAt($enrollment->ambassador_id, $validatedAt);
+        $rule = $this->resolveRule((string) $enrollment->program_type, $countAtValidation);
+        $commission->tier = $rule?->tier ?? $commission->tier ?? 'bronze';
+
+        if (! $commission->exists || in_array($commission->status, ['generated', 'pending'], true)) {
+            $commission->status = 'approved';
+        }
+
+        $commission->save();
+
+        return $commission;
+    }
+
+    private function calculateGrossForEnrollments(int $ambassadorId, Collection $enrollments): float
+    {
+        $grossAmount = 0.0;
+
+        foreach ($enrollments->sortBy('validated_at') as $enrollment) {
+            $validatedAt = Carbon::parse($enrollment->validated_at);
+            $grossAmount += $this->amountForEnrollment(
+                $ambassadorId,
+                (string) $enrollment->program_type,
+                $validatedAt,
+            );
+        }
+
+        return $grossAmount;
+    }
+
+    private function amountForEnrollment(int $ambassadorId, string $programType, Carbon $validatedAt): float
+    {
+        $countAtValidation = $this->validatedCountAt($ambassadorId, $validatedAt);
+        $rule = $this->resolveRule($programType, $countAtValidation);
+
+        return (float) ($rule?->amount_per_enrollment ?? 0);
+    }
+
+    private function validatedCountAt(int $ambassadorId, Carbon $validatedAt): int
+    {
+        return Enrollment::query()
+            ->where('ambassador_id', $ambassadorId)
+            ->whereNotNull('validated_at')
+            ->where('validated_at', '<=', $validatedAt)
+            ->count();
     }
 
     private function getMajorProgramType(Collection $enrollments): string
