@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api";
 import { homePathForRole, roleFromLoginResponse, saveAuthSession } from "@/lib/auth/session";
 import { isDemoMode } from "@/lib/demo/config";
+import { SubmitButton } from "@/components/ui/LoadingState";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,40 +22,47 @@ export default function RegisterPage() {
     password_confirmation: "",
   });
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (submitting) return;
     setError("");
+    setSubmitting(true);
 
-    if (form.password !== form.password_confirmation) {
-      setError("Les mots de passe ne correspondent pas.");
-      return;
-    }
+    try {
+      if (form.password !== form.password_confirmation) {
+        setError("Les mots de passe ne correspondent pas.");
+        return;
+      }
 
-    const payload = {
-      name: `${form.last_name} ${form.first_name}`.trim(),
-      email: form.email,
-      phone: `${form.phone_country_code}${form.phone}`.replace(/\s+/g, ""),
-      password: form.password,
-    };
+      const payload = {
+        name: `${form.last_name} ${form.first_name}`.trim(),
+        email: form.email,
+        phone: `${form.phone_country_code}${form.phone}`.replace(/\s+/g, ""),
+        password: form.password,
+      };
 
-    const res = await apiRequest<{ token?: string; message?: string; user?: { role?: string } }>("/auth/register", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-    if (res.error) {
-      setError(res.error);
-      return;
+      const res = await apiRequest<{ token?: string; message?: string; user?: { role?: string } }>("/auth/register", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      if (res.error) {
+        setError(res.error);
+        return;
+      }
+      if (isDemoMode && res.data?.token) {
+        const role = roleFromLoginResponse(res.data.user);
+        saveAuthSession(res.data.token, role);
+        router.push(homePathForRole(role));
+        return;
+      }
+      router.push(`/verification?email=${encodeURIComponent(form.email)}`);
+    } finally {
+      setSubmitting(false);
     }
-    if (isDemoMode && res.data?.token) {
-      const role = roleFromLoginResponse(res.data.user);
-      saveAuthSession(res.data.token, role);
-      router.push(homePathForRole(role));
-      return;
-    }
-    router.push(`/verification?email=${encodeURIComponent(form.email)}`);
   }
 
   return (
@@ -164,9 +172,13 @@ export default function RegisterPage() {
               </div>
             </div>
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
-            <button className="mt-1 rounded-md bg-[#0b2e7a] px-4 py-2.5 text-sm font-semibold text-white" type="submit">
+            <SubmitButton
+              loading={submitting}
+              loadingLabel="Création du compte…"
+              className="mt-1 w-full rounded-md bg-[#0b2e7a] px-4 py-2.5 text-sm text-white"
+            >
               Créer le compte
-            </button>
+            </SubmitButton>
           </form>
 
           <p className="mt-4 text-sm text-slate-600">

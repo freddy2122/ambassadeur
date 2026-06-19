@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { LoadingBlock } from "@/components/ui/LoadingState";
 
 type PayoutRun = {
   id: number;
@@ -40,6 +41,7 @@ export default function AdminPayoutsAutoPage() {
   const [status, setStatus] = useState("");
   const [command, setCommand] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState({
     success_rate: 0,
     total_success: 0,
@@ -55,6 +57,7 @@ export default function AdminPayoutsAutoPage() {
   };
 
   useEffect(() => {
+    setLoading(true);
     const params = new URLSearchParams({ page: String(page), per_page: "20" });
     if (status) params.set("status", status);
     if (command) params.set("command", command);
@@ -62,18 +65,19 @@ export default function AdminPayoutsAutoPage() {
     apiRequest<RunsResponse>(`/admin/payout-runs?${params.toString()}`, {}, true).then((res) => {
       if (res.error) {
         setError(res.error);
-        return;
+      } else {
+        setError("");
+        setRows(res.data?.data?.data ?? []);
+        setLastPage(res.data?.data?.last_page ?? 1);
+        setSummary({
+          success_rate: res.data?.summary?.success_rate ?? 0,
+          total_success: res.data?.summary?.total_success ?? 0,
+          total_failed: res.data?.summary?.total_failed ?? 0,
+          total_runs: res.data?.summary?.total_runs ?? 0,
+          pending_retries: res.data?.summary?.pending_retries ?? 0,
+        });
       }
-      setError("");
-      setRows(res.data?.data?.data ?? []);
-      setLastPage(res.data?.data?.last_page ?? 1);
-      setSummary({
-        success_rate: res.data?.summary?.success_rate ?? 0,
-        total_success: res.data?.summary?.total_success ?? 0,
-        total_failed: res.data?.summary?.total_failed ?? 0,
-        total_runs: res.data?.summary?.total_runs ?? 0,
-        pending_retries: res.data?.summary?.pending_retries ?? 0,
-      });
+      setLoading(false);
     });
   }, [page, status, command]);
 
@@ -147,6 +151,11 @@ export default function AdminPayoutsAutoPage() {
 
       {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
 
+      {loading ? (
+        <div className="mt-6">
+          <LoadingBlock label="Chargement des exécutions…" />
+        </div>
+      ) : (
       <div className="mt-4 overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
@@ -208,12 +217,13 @@ export default function AdminPayoutsAutoPage() {
           </tbody>
         </table>
       </div>
+      )}
 
       <div className="mt-4 flex items-center justify-between">
         <p className="text-xs text-slate-500">Page {page} / {lastPage}</p>
         <div className="flex gap-2">
-          <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm disabled:opacity-50">Precedent</button>
-          <button type="button" onClick={() => setPage((p) => Math.min(lastPage, p + 1))} disabled={page >= lastPage} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm disabled:opacity-50">Suivant</button>
+          <button type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1 || loading} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm disabled:opacity-50">Precedent</button>
+          <button type="button" onClick={() => setPage((p) => Math.min(lastPage, p + 1))} disabled={page >= lastPage || loading} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm disabled:opacity-50">Suivant</button>
         </div>
       </div>
     </div>

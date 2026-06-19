@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\FrontendUrl;
 use App\Models\ReferralLink;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -39,7 +40,7 @@ class AmbassadorRegistrationService
             $personalReferralLink = ReferralLink::query()->create([
                 'ambassador_id' => $user->id,
                 'code' => $referralCode,
-                'destination_url' => rtrim((string) config('app.frontend_url', config('app.url')), '/').'/formations?ref='.$referralCode,
+                'destination_url' => FrontendUrl::referralLink($referralCode),
             ]);
 
             return [

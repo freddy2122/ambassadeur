@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Support\FrontendUrl;
 use App\Models\ReferralClick;
 use App\Models\ReferralLink;
 use App\Notifications\PlatformNotification;
@@ -53,7 +54,7 @@ class ReferralController extends Controller
             $ambassador->notify(new PlatformNotification(
                 'Nouveau lead reçu',
                 "Un nouveau prospect ({$lead->full_name}) vient de s'inscrire via votre lien.",
-                rtrim((string) config('app.frontend_url', config('app.url')), '/').'/dashboard/leads'
+                FrontendUrl::path('dashboard/leads')
             ));
         }
 

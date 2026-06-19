@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Support\FrontendUrl;
 use App\Models\ReferralLink;
 use App\Models\User;
 use App\Notifications\PlatformNotification;
 use App\Services\AmbassadorRegistrationService;
 use App\Services\EmailVerificationCodeService;
-use Illuminate\Contracts\Auth\PasswordBroker;
+use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -54,7 +55,7 @@ class AuthController extends Controller
         $user->notify(new PlatformNotification(
             'Bienvenue sur EIG Ambassadeur',
             'Votre compte a été créé. Vérifiez votre email avec le code à 6 chiffres pour activer votre espace.',
-            rtrim((string) config('app.frontend_url', config('app.url')), '/').'/verification?email='.urlencode($user->email)
+            FrontendUrl::path('verification?email='.urlencode($user->email))
         ));
 
         return response()->json([
@@ -162,8 +163,7 @@ class AuthController extends Controller
         /** @var PasswordBroker $passwordBroker */
         $passwordBroker = Password::broker();
         $token = $passwordBroker->createToken($user);
-        $frontendBaseUrl = rtrim((string) config('app.frontend_url', config('app.url')), '/');
-        $resetUrl = $frontendBaseUrl.'/reinitialiser-mot-de-passe?token='.urlencode($token).'&email='.urlencode($user->email);
+        $resetUrl = FrontendUrl::path('reinitialiser-mot-de-passe?token='.urlencode($token).'&email='.urlencode($user->email));
 
         Mail::raw(
             "Vous avez demandé une réinitialisation de mot de passe.\n\nLien: {$resetUrl}\n\nCe lien expire conformément à la configuration de sécurité.",

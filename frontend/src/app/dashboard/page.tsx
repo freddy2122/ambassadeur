@@ -9,6 +9,7 @@ import { LevelCard } from "@/components/dashboard/LevelCard";
 import { ReferralCodeBlock } from "@/components/dashboard/ReferralCodeBlock";
 import { ambassadorDisplayName, formatRank, type DashboardResponse } from "@/lib/ambassador";
 import { apiRequest } from "@/lib/api";
+import { LoadingBlock } from "@/components/ui/LoadingState";
 import { formatFcfa } from "@/lib/platformStats";
 
 export default function DashboardPage() {
@@ -33,12 +34,11 @@ export default function DashboardPage() {
   const available = data?.earnings?.available ?? data?.kpis?.available_earnings ?? 0;
   const rank = data?.kpis?.rank ?? 0;
   const referralCode = data?.referral?.code ?? "";
-  const personalUrl = data?.referral?.personal_url ?? "";
-  const displayUrl = data?.referral?.display_url ?? personalUrl;
+  const apiPersonalUrl = data?.referral?.personal_url ?? "";
 
   return (
     <div className="space-y-5 pb-20 lg:pb-0">
-      <section className="rounded-eig-lg border border-eig-blue bg-gradient-to-r from-eig-blue to-eig-blue-light p-6 text-white shadow-eig-lg">
+      <section className="rounded-eig-lg border border-eig-blue bg-gradient-to-r from-eig-blue via-eig-blue-light to-eig-gold-dark p-6 text-white shadow-eig-lg">
         <p className="text-sm text-blue-100">Bonjour {firstName},</p>
         <h2 className="mt-1 text-2xl font-extrabold">Tableau de bord</h2>
       </section>
@@ -48,15 +48,15 @@ export default function DashboardPage() {
       ) : null}
 
       {loading ? (
-        <section className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
-          Chargement…
+        <section className="rounded-xl border border-slate-200 bg-white p-6">
+          <LoadingBlock label="Chargement du tableau de bord…" />
         </section>
       ) : null}
 
       {!loading && data ? (
         <>
-          {referralCode && personalUrl ? (
-            <ReferralCodeBlock code={referralCode} personalUrl={personalUrl} displayUrl={displayUrl} />
+          {referralCode ? (
+            <ReferralCodeBlock code={referralCode} personalUrl={apiPersonalUrl} />
           ) : null}
 
           <section>
@@ -92,7 +92,7 @@ function QuickLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-eig-blue transition-colors hover:bg-slate-50"
+      className="inline-flex items-center justify-center rounded-xl border border-eig-gold/30 px-4 py-3 text-sm font-semibold text-eig-blue transition-colors hover:bg-eig-gold-light/60"
     >
       {label}
     </Link>

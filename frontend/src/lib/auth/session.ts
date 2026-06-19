@@ -46,3 +46,19 @@ export function consumeAuthFlash(): string | null {
 export function roleFromLoginResponse(user?: { role?: string | null }): string {
   return user?.role === "admin" ? "admin" : "ambassador";
 }
+
+/** Corps JSON login : champ `login` (nouvelle API) + `email` si adresse (ancienne API prod). */
+export function buildLoginRequestBody(login: string, password: string): string {
+  const value = login.trim();
+  const payload: Record<string, string> = { login: value, password };
+  if (value.includes("@")) {
+    payload.email = value.toLowerCase();
+  }
+  return JSON.stringify(payload);
+}
+
+export function resolveProfileRole(profileRole?: string | null, fallback?: string | null): string {
+  if (profileRole === "admin" || profileRole === "ambassador") return profileRole;
+  if (fallback === "admin" || fallback === "ambassador") return fallback;
+  return "ambassador";
+}

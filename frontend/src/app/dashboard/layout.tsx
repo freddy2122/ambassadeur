@@ -10,6 +10,7 @@ import {
   consumeAuthFlash,
   getAuthRole,
   isAdminRole,
+  resolveProfileRole,
   saveAuthSession,
   setAuthFlash,
 } from "@/lib/auth/session";
@@ -85,7 +86,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         return;
       }
 
-      const role = res.data?.profile?.role ?? "ambassador";
+      const role = resolveProfileRole(res.data?.profile?.role, getAuthRole());
       if (isAdminRole(role)) {
         saveAuthSession(window.localStorage.getItem("auth_token") ?? "", role);
         setAuthFlash("Vous êtes connecté en tant qu'administrateur.");
@@ -141,7 +142,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   key={item.href}
                   href={item.href}
                   className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                    active ? "bg-eig-blue text-white" : "text-slate-700 hover:bg-slate-100"
+                    active
+                      ? "bg-eig-blue text-white shadow-sm ring-1 ring-eig-gold/50"
+                      : "text-slate-700 hover:bg-eig-gold-light/50"
                   }`}
                 >
                   <Icon size={16} />
@@ -186,7 +189,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 >
                   <Bell size={18} />
                   {unreadCount > 0 ? (
-                    <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-eig-cyan px-1 text-[10px] font-bold text-white">
+                    <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-eig-gold px-1 text-[10px] font-bold text-eig-blue">
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   ) : null}
@@ -222,7 +225,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </div>
                 ) : null}
                 <div className="hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 sm:inline-flex">
-                  <div className="grid h-7 w-7 place-items-center rounded-full bg-eig-blue text-xs font-bold text-white">
+                  <div className="grid h-7 w-7 place-items-center rounded-full bg-eig-gold text-xs font-bold text-eig-blue">
                     {getInitials(partnerName)}
                   </div>
                   <span className="text-sm font-medium text-slate-700">{partnerName}</span>

@@ -10,6 +10,7 @@ import {
   consumeAuthFlash,
   getAuthRole,
   isAdminRole,
+  resolveProfileRole,
   saveAuthSession,
   setAuthFlash,
 } from "@/lib/auth/session";
@@ -49,7 +50,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     apiRequest<{ profile?: { role?: string } }>("/me/profile", {}, true).then((res) => {
-      const role = res.data?.profile?.role;
+      const role = resolveProfileRole(res.data?.profile?.role, getAuthRole());
       const token = window.localStorage.getItem("auth_token") ?? "";
 
       if (res.error && (res.error.includes("administrateur") || res.error.includes("403"))) {
@@ -91,7 +92,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   key={item.href}
                   href={item.href}
                   className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
-                    active ? "bg-eig-blue text-white" : "text-slate-700 hover:bg-slate-100"
+                    active ? "bg-eig-blue text-white ring-1 ring-eig-gold/50" : "text-slate-700 hover:bg-eig-gold-light/50"
                   }`}
                 >
                   <Icon size={16} />

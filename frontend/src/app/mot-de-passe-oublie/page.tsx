@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { apiRequest } from "@/lib/api";
+import { SubmitButton } from "@/components/ui/LoadingState";
 
 type ForgotResponse = {
   message?: string;
@@ -15,25 +16,32 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [debugToken, setDebugToken] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (submitting) return;
     setError("");
     setMessage("");
     setDebugToken(null);
+    setSubmitting(true);
 
-    const res = await apiRequest<ForgotResponse>("/auth/forgot-password", {
-      method: "POST",
-      body: JSON.stringify({ email }),
-    });
+    try {
+      const res = await apiRequest<ForgotResponse>("/auth/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
 
-    if (res.error) {
-      setError(res.error);
-      return;
+      if (res.error) {
+        setError(res.error);
+        return;
+      }
+
+      setMessage(res.data?.message ?? "Si cet email existe, un lien de réinitialisation a été envoyé.");
+      setDebugToken(res.data?.debug_reset_token ?? null);
+    } finally {
+      setSubmitting(false);
     }
-
-    setMessage(res.data?.message ?? "Si cet email existe, un lien de réinitialisation a été envoyé.");
-    setDebugToken(res.data?.debug_reset_token ?? null);
   }
 
   return (
@@ -63,12 +71,13 @@ export default function ForgotPasswordPage() {
               Token debug: <span className="font-mono">{debugToken}</span>
             </p>
           ) : null}
-          <button
-            className="w-full rounded-md bg-[#0b2e7a] px-4 py-2.5 text-sm font-semibold text-white"
-            type="submit"
+          <SubmitButton
+            loading={submitting}
+            loadingLabel="Envoi en cours…"
+            className="w-full rounded-md bg-[#0b2e7a] px-4 py-2.5 text-sm text-white"
           >
             Envoyer le lien
-          </button>
+          </SubmitButton>
         </form>
 
         <p className="mt-4 text-sm text-slate-600">

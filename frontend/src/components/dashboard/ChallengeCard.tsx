@@ -14,13 +14,13 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
     : "Bientôt";
 
   return (
-    <section className="rounded-eig-lg border border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 p-5 shadow-eig">
+    <section className="rounded-eig-lg border border-eig-gold/25 bg-gradient-to-br from-eig-gold-light/80 to-white p-5 shadow-eig">
       <div className="flex items-center gap-2">
-        <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500 text-white">
+        <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-eig-gold text-eig-blue">
           <Flame size={18} />
         </div>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-orange-600">Challenge en cours</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-eig-gold-dark">Challenge en cours</p>
           <h3 className="text-lg font-bold text-eig-blue">{challenge.title}</h3>
         </div>
       </div>
@@ -30,7 +30,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
       </p>
 
       <div className="mt-4 flex items-center gap-2 rounded-xl bg-white/80 px-3 py-2 text-sm">
-        <Gift size={16} className="text-orange-500" />
+        <Gift size={16} className="text-eig-gold-dark" />
         <span className="font-medium text-slate-800">Prime : {formatFcfa(challenge.reward_amount)}</span>
       </div>
 
@@ -42,7 +42,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
         />
       </div>
 
-      <p className="mt-3 text-xs text-orange-700">Fin : {endsLabel}</p>
+      <p className="mt-3 text-xs text-eig-gold-dark">Fin : {endsLabel}</p>
     </section>
   );
 }

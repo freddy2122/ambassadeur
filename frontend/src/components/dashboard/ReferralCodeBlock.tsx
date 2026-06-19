@@ -1,20 +1,24 @@
-import { CopyButton } from "@/components/ui/CopyButton";
+"use client";
+
 import { Link2 } from "lucide-react";
+import { CopyButton } from "@/components/ui/CopyButton";
+import { LoadingSpinner } from "@/components/ui/LoadingState";
+import { usePersonalReferralUrl } from "@/lib/usePersonalReferralUrl";
 
 type ReferralCodeBlockProps = {
   code: string;
-  personalUrl: string;
-  displayUrl?: string;
+  /** Ignoré à l’affichage : conservé comme fallback SSR uniquement. */
+  personalUrl?: string | null;
 };
 
-export function ReferralCodeBlock({ code, personalUrl, displayUrl }: ReferralCodeBlockProps) {
-  const shownUrl = displayUrl || personalUrl;
+export function ReferralCodeBlock({ code, personalUrl }: ReferralCodeBlockProps) {
+  const { link, host, ready } = usePersonalReferralUrl(code, personalUrl);
 
   return (
-    <section className="rounded-eig-lg border border-slate-200 bg-white p-5 shadow-eig">
+    <section className="rounded-eig-lg border border-eig-gold/25 bg-gradient-to-br from-white to-eig-gold-light/40 p-5 shadow-eig">
       <h3 className="text-base font-bold text-eig-blue">Mon Code Ambassadeur</h3>
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <span className="inline-flex rounded-xl border border-eig-cyan/30 bg-eig-cyan/10 px-4 py-2 text-lg font-extrabold tracking-wide text-eig-blue">
+        <span className="inline-flex rounded-xl border border-eig-gold/40 bg-eig-gold-light px-4 py-2 text-lg font-extrabold tracking-wide text-eig-blue">
           {code}
         </span>
         <CopyButton value={code} label="Copier" />
@@ -22,12 +26,29 @@ export function ReferralCodeBlock({ code, personalUrl, displayUrl }: ReferralCod
 
       <div className="mt-6">
         <h4 className="text-sm font-semibold text-slate-700">Mon Lien Personnel</h4>
+        <p className="mt-1 text-xs text-eig-muted">
+          {ready && host ? (
+            <>
+              Lien pour le domaine <span className="font-semibold text-eig-blue">{host}</span> — identique sur
+              Partnext, Vercel ou en local, selon l’adresse où tu es connecté.
+            </>
+          ) : (
+            <>Génération du lien pour ce domaine…</>
+          )}
+        </p>
         <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex min-h-11 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700">
-            <Link2 size={16} className="shrink-0 text-eig-muted" />
-            <span className="truncate">{shownUrl}</span>
+          <div className="flex min-h-11 flex-1 items-center gap-2 rounded-xl border border-eig-gold/20 bg-white px-3 text-sm text-slate-700">
+            <Link2 size={16} className="shrink-0 text-eig-gold-dark" />
+            {ready ? (
+              <span className="truncate">{link}</span>
+            ) : (
+              <span className="inline-flex items-center gap-2 text-eig-muted">
+                <LoadingSpinner size={14} />
+                Préparation du lien…
+              </span>
+            )}
           </div>
-          <CopyButton value={personalUrl} label="Copier" />
+          <CopyButton value={link} label="Copier" disabled={!ready} />
         </div>
       </div>
     </section>

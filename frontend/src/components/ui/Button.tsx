@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { LoadingSpinner } from "./LoadingState";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost";
 type ButtonSize = "sm" | "md" | "lg";
@@ -27,6 +28,8 @@ type ButtonProps = {
   type?: "button" | "submit" | "reset";
   onClick?: () => void;
   disabled?: boolean;
+  loading?: boolean;
+  loadingLabel?: string;
 };
 
 export function Button({
@@ -38,9 +41,11 @@ export function Button({
   type = "button",
   onClick,
   disabled,
+  loading = false,
+  loadingLabel,
 }: ButtonProps) {
   const classes = cn(
-    "inline-flex items-center justify-center rounded-xl font-semibold transition-colors duration-200",
+    "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-colors duration-200",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-eig-cyan focus-visible:ring-offset-2",
     "disabled:pointer-events-none disabled:opacity-50",
     variantClasses[variant],
@@ -57,8 +62,9 @@ export function Button({
   }
 
   return (
-    <button type={type} className={classes} onClick={onClick} disabled={disabled}>
-      {children}
+    <button type={type} className={classes} onClick={onClick} disabled={disabled || loading}>
+      {loading ? <LoadingSpinner size={16} className="text-current" /> : null}
+      {loading ? (loadingLabel ?? children) : children}
     </button>
   );
 }

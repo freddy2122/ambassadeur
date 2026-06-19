@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import type { PayoutEligibilityResponse } from "@/lib/ambassador";
 import { apiRequest } from "@/lib/api";
+import { LoadingBlock } from "@/components/ui/LoadingState";
 import { formatFcfa } from "@/lib/platformStats";
 
 type PaymentMethod = "mtn" | "moov" | "celtiis";
@@ -102,14 +103,14 @@ export default function PaiementsPage() {
 
   return (
     <div className="space-y-5 pb-20 lg:pb-0">
-      <section className="rounded-eig-lg border border-slate-200 bg-white p-6 shadow-eig">
-        <h1 className="text-2xl font-extrabold text-eig-blue">Retirer mes gains</h1>
-        <p className="mt-1 text-sm text-eig-muted">Renseigne tes informations Mobile Money pour recevoir ton paiement.</p>
+      <section className="rounded-eig-lg border border-eig-blue bg-gradient-to-r from-eig-blue via-eig-blue-light to-eig-gold-dark p-6 text-white shadow-eig">
+        <h1 className="text-2xl font-extrabold">Retirer mes gains</h1>
+        <p className="mt-1 text-sm text-blue-100">Renseigne tes informations Mobile Money pour recevoir ton paiement.</p>
       </section>
 
       {initialLoading ? (
-        <section className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
-          Chargement...
+        <section className="rounded-xl border border-slate-200 bg-white p-6">
+          <LoadingBlock label="Chargement de ton solde…" />
         </section>
       ) : (
         <form onSubmit={onSubmit} className="space-y-5">
@@ -192,10 +193,12 @@ export default function PaiementsPage() {
                 type="submit"
                 variant="secondary"
                 size="lg"
-                disabled={loading || available <= 0 || blocked}
+                loading={loading}
+                loadingLabel="Envoi en cours…"
+                disabled={available <= 0 || blocked}
                 className="disabled:opacity-50"
               >
-                {loading ? "Envoi en cours..." : "Envoyer ma demande"}
+                Envoyer ma demande
               </Button>
               <Link
                 href="/dashboard/commissions"

@@ -8,6 +8,7 @@ import { EarningsSummary } from "@/components/dashboard/EarningsSummary";
 import { Button } from "@/components/ui/Button";
 import type { EarningsResponse } from "@/lib/ambassador";
 import { apiRequest } from "@/lib/api";
+import { LoadingBlock } from "@/components/ui/LoadingState";
 
 export default function CommissionsPage() {
   const [data, setData] = useState<EarningsResponse | null>(null);
@@ -26,9 +27,9 @@ export default function CommissionsPage() {
 
   return (
     <div className="space-y-5 pb-20 lg:pb-0">
-      <section className="rounded-eig-lg border border-slate-200 bg-white p-6 shadow-eig">
-        <h1 className="text-2xl font-extrabold text-eig-blue">Mes Gains</h1>
-        <p className="mt-1 text-sm text-eig-muted">Suis tes revenus disponibles, en attente et déjà versés.</p>
+      <section className="rounded-eig-lg border border-eig-blue bg-gradient-to-r from-eig-blue via-eig-blue-light to-eig-gold-dark p-6 text-white shadow-eig">
+        <h1 className="text-2xl font-extrabold">Mes Gains</h1>
+        <p className="mt-1 text-sm text-blue-100">Suis tes revenus disponibles, en attente et déjà versés.</p>
       </section>
 
       {error ? (
@@ -36,8 +37,8 @@ export default function CommissionsPage() {
       ) : null}
 
       {loading ? (
-        <section className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
-          Chargement de tes gains...
+        <section className="rounded-xl border border-slate-200 bg-white p-6">
+          <LoadingBlock label="Chargement de tes gains…" />
         </section>
       ) : (
         <>

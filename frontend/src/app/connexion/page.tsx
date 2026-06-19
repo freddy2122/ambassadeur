@@ -7,11 +7,13 @@ import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api";
 import {
+  buildLoginRequestBody,
   homePathForRole,
   roleFromLoginResponse,
   saveAuthSession,
 } from "@/lib/auth/session";
 import { isDemoMode, DEMO_LOGIN_HINT } from "@/lib/demo/config";
+import { SubmitButton } from "@/components/ui/LoadingState";
 
 type LoginResponse = {
   token?: string;
@@ -27,35 +29,42 @@ export default function ConnexionPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (submitting) return;
     setError("");
+    setSubmitting(true);
 
-    const result = await apiRequest<LoginResponse>("/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ login, password }),
-    });
+    try {
+      const result = await apiRequest<LoginResponse>("/auth/login", {
+        method: "POST",
+        body: buildLoginRequestBody(login, password),
+      });
 
-    if (result.error) {
-      setError(result.error);
-      return;
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+
+      if (result.data?.requires_verification) {
+        const email = result.data.email ?? (login.includes("@") ? login : "");
+        router.push(`/verification?email=${encodeURIComponent(email)}`);
+        return;
+      }
+
+      if (result.data?.token) {
+        const role = roleFromLoginResponse(result.data.user);
+        saveAuthSession(result.data.token, role);
+        router.push(homePathForRole(role));
+        return;
+      }
+
+      setError("Réponse du serveur inattendue.");
+    } finally {
+      setSubmitting(false);
     }
-
-    if (result.data?.requires_verification) {
-      const email = result.data.email ?? (login.includes("@") ? login : "");
-      router.push(`/verification?email=${encodeURIComponent(email)}`);
-      return;
-    }
-
-    if (result.data?.token) {
-      const role = roleFromLoginResponse(result.data.user);
-      saveAuthSession(result.data.token, role);
-      router.push(homePathForRole(role));
-      return;
-    }
-
-    setError("Réponse du serveur inattendue.");
   }
 
   return (
@@ -132,12 +141,13 @@ export default function ConnexionPage() {
               </Link>
             </div>
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
-            <button
-              className="w-full rounded-xl bg-eig-blue px-4 py-2.5 text-sm font-semibold text-white hover:bg-eig-blue-light"
-              type="submit"
+            <SubmitButton
+              loading={submitting}
+              loadingLabel="Connexion en cours…"
+              className="w-full rounded-xl bg-eig-blue px-4 py-2.5 text-sm text-white hover:bg-eig-blue-light"
             >
               Se connecter
-            </button>
+            </SubmitButton>
           </form>
 
           <p className="mt-4 text-sm text-slate-600">

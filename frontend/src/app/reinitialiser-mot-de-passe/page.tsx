@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { apiRequest } from "@/lib/api";
+import { SubmitButton } from "@/components/ui/LoadingState";
 import { useClientSearchParamsSnapshot } from "@/lib/useClientSearchParamsSnapshot";
 
 type ResetResponse = {
@@ -23,28 +24,35 @@ export default function ResetPasswordPage() {
   const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (submitting) return;
     setError("");
     setMessage("");
+    setSubmitting(true);
 
-    const res = await apiRequest<ResetResponse>("/auth/reset-password", {
-      method: "POST",
-      body: JSON.stringify({
-        email,
-        token,
-        password,
-        password_confirmation: passwordConfirmation,
-      }),
-    });
+    try {
+      const res = await apiRequest<ResetResponse>("/auth/reset-password", {
+        method: "POST",
+        body: JSON.stringify({
+          email: email || emailFromUrl,
+          token: token || tokenFromUrl,
+          password,
+          password_confirmation: passwordConfirmation,
+        }),
+      });
 
-    if (res.error) {
-      setError(res.error);
-      return;
+      if (res.error) {
+        setError(res.error);
+        return;
+      }
+
+      setMessage(res.data?.message ?? "Mot de passe réinitialisé avec succès.");
+    } finally {
+      setSubmitting(false);
     }
-
-    setMessage(res.data?.message ?? "Mot de passe réinitialisé avec succès.");
   }
 
   return (
@@ -111,12 +119,13 @@ export default function ResetPasswordPage() {
 
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
           {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
-          <button
-            className="w-full rounded-md bg-[#0b2e7a] px-4 py-2.5 text-sm font-semibold text-white"
-            type="submit"
+          <SubmitButton
+            loading={submitting}
+            loadingLabel="Réinitialisation…"
+            className="w-full rounded-md bg-[#0b2e7a] px-4 py-2.5 text-sm text-white"
           >
             Réinitialiser
-          </button>
+          </SubmitButton>
         </form>
 
         <p className="mt-4 text-sm text-slate-600">

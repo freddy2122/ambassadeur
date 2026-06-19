@@ -9,6 +9,7 @@ import {
   saveAuthSession,
 } from "@/lib/auth/session";
 import { isDemoMode } from "@/lib/demo/config";
+import { SubmitButton } from "@/components/ui/LoadingState";
 import { useClientSearchParamsSnapshot } from "@/lib/useClientSearchParamsSnapshot";
 
 type VerifyResponse = {
@@ -24,25 +25,32 @@ export default function VerificationPage() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (submitting) return;
     setMessage("");
-    const res = await apiRequest<VerifyResponse>("/auth/verify-code", {
-      method: "POST",
-      body: JSON.stringify({ email: email || emailFromUrl, code }),
-    });
-    if (res.error) {
-      setMessage(res.error);
-      return;
+    setSubmitting(true);
+    try {
+      const res = await apiRequest<VerifyResponse>("/auth/verify-code", {
+        method: "POST",
+        body: JSON.stringify({ email: email || emailFromUrl, code }),
+      });
+      if (res.error) {
+        setMessage(res.error);
+        return;
+      }
+      if (res.data?.token) {
+        const role = roleFromLoginResponse(res.data.user);
+        saveAuthSession(res.data.token, role);
+        router.push(homePathForRole(role));
+        return;
+      }
+      setMessage(res.data?.message ?? "Vérification terminée.");
+    } finally {
+      setSubmitting(false);
     }
-    if (res.data?.token) {
-      const role = roleFromLoginResponse(res.data.user);
-      saveAuthSession(res.data.token, role);
-      router.push(homePathForRole(role));
-      return;
-    }
-    setMessage(res.data?.message ?? "Vérification terminée.");
   }
 
   return (
@@ -66,9 +74,13 @@ export default function VerificationPage() {
           onChange={(e) => setCode(e.target.value)}
           required
         />
-        <button className="w-full rounded-xl bg-eig-blue px-4 py-2.5 text-sm font-semibold text-white" type="submit">
+        <SubmitButton
+          loading={submitting}
+          loadingLabel="Vérification…"
+          className="w-full rounded-xl bg-eig-blue px-4 py-2.5 text-sm text-white"
+        >
           Vérifier
-        </button>
+        </SubmitButton>
       </form>
       {message ? <p className="mt-3 text-sm text-slate-600">{message}</p> : null}
     </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { LoadingBlock, LoadingButton } from "@/components/ui/LoadingState";
 
 type Commission = {
   id: number;
@@ -30,9 +31,13 @@ export default function AdminCommissionsPage() {
   const [status, setStatus] = useState("");
   const [periodMonth, setPeriodMonth] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [approvingId, setApprovingId] = useState<number | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
+    setLoading(true);
     const params = new URLSearchParams({
       page: String(page),
       per_page: "10",
@@ -43,14 +48,41 @@ export default function AdminCommissionsPage() {
     apiRequest<PaginatedResponse>(`/admin/commissions?${params.toString()}`, {}, true).then((res) => {
       if (res.error) {
         setError(res.error);
-        return;
+      } else {
+        setError("");
+        setItems(res.data?.data?.data ?? []);
+        setLastPage(res.data?.data?.last_page ?? 1);
+        setTotal(res.data?.data?.total ?? 0);
       }
-      setError("");
-      setItems(res.data?.data?.data ?? []);
-      setLastPage(res.data?.data?.last_page ?? 1);
-      setTotal(res.data?.data?.total ?? 0);
+      setLoading(false);
     });
   }, [page, status, periodMonth, refreshKey]);
+
+  async function onGenerate() {
+    if (!periodMonth || generating) return;
+    setGenerating(true);
+    try {
+      await apiRequest("/admin/commissions/generate", {
+        method: "POST",
+        body: JSON.stringify({ period_month: periodMonth }),
+      }, true);
+      setPage(1);
+      setRefreshKey((k) => k + 1);
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function onApprove(id: number) {
+    if (approvingId !== null) return;
+    setApprovingId(id);
+    try {
+      await apiRequest(`/admin/commissions/${id}/approve`, { method: "POST" }, true);
+      setRefreshKey((k) => k + 1);
+    } finally {
+      setApprovingId(null);
+    }
+  }
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5">
@@ -81,69 +113,69 @@ export default function AdminCommissionsPage() {
           <option value="in_payment">in_payment</option>
           <option value="payment_failed">payment_failed</option>
         </select>
-        <button
+        <LoadingButton
           type="button"
-          onClick={async () => {
-            if (!periodMonth) return;
-            await apiRequest("/admin/commissions/generate", {
-              method: "POST",
-              body: JSON.stringify({ period_month: periodMonth }),
-            }, true);
-            setPage(1);
-            setRefreshKey((k) => k + 1);
-          }}
-          className="rounded-md bg-[#0b2e7a] px-3 py-2 text-sm font-semibold text-white"
+          loading={generating}
+          loadingLabel="Génération…"
+          onClick={onGenerate}
+          disabled={!periodMonth}
+          className="rounded-md bg-[#0b2e7a] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
         >
           Générer la période
-        </button>
+        </LoadingButton>
       </div>
 
       {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
 
-      <div className="mt-4 overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 text-left text-slate-500">
-              <th className="py-2 pr-3">Ambassadeur</th>
-              <th className="py-2 pr-3">Période</th>
-              <th className="py-2 pr-3">Montant</th>
-              <th className="py-2 pr-3">Tier</th>
-              <th className="py-2 pr-3">Statut</th>
-              <th className="py-2">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item) => (
-              <tr key={item.id} className="border-b border-slate-100">
-                <td className="py-2 pr-3">
-                  <p>{item.ambassador?.name ?? "-"}</p>
-                  <p className="text-xs text-slate-500">{item.ambassador?.email ?? "-"}</p>
-                </td>
-                <td className="py-2 pr-3">{item.period_month ?? "-"}</td>
-                <td className="py-2 pr-3">{(item.gross_amount ?? 0).toLocaleString("fr-FR")} FCFA</td>
-                <td className="py-2 pr-3">{item.tier ?? "-"}</td>
-                <td className="py-2 pr-3">{item.status ?? "-"}</td>
-                <td className="py-2">
-                  {item.status !== "approved" ? (
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        await apiRequest(`/admin/commissions/${item.id}/approve`, { method: "POST" }, true);
-                        setRefreshKey((k) => k + 1);
-                      }}
-                      className="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700"
-                    >
-                      Approuver
-                    </button>
-                  ) : (
-                    <span className="text-xs text-emerald-700">Approuvée</span>
-                  )}
-                </td>
+      {loading ? (
+        <div className="mt-6">
+          <LoadingBlock label="Chargement des commissions…" />
+        </div>
+      ) : (
+        <div className="mt-4 overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 text-left text-slate-500">
+                <th className="py-2 pr-3">Ambassadeur</th>
+                <th className="py-2 pr-3">Période</th>
+                <th className="py-2 pr-3">Montant</th>
+                <th className="py-2 pr-3">Tier</th>
+                <th className="py-2 pr-3">Statut</th>
+                <th className="py-2">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {items.map((item) => (
+                <tr key={item.id} className="border-b border-slate-100">
+                  <td className="py-2 pr-3">
+                    <p>{item.ambassador?.name ?? "-"}</p>
+                    <p className="text-xs text-slate-500">{item.ambassador?.email ?? "-"}</p>
+                  </td>
+                  <td className="py-2 pr-3">{item.period_month ?? "-"}</td>
+                  <td className="py-2 pr-3">{(item.gross_amount ?? 0).toLocaleString("fr-FR")} FCFA</td>
+                  <td className="py-2 pr-3">{item.tier ?? "-"}</td>
+                  <td className="py-2 pr-3">{item.status ?? "-"}</td>
+                  <td className="py-2">
+                    {item.status !== "approved" ? (
+                      <LoadingButton
+                        type="button"
+                        loading={approvingId === item.id}
+                        loadingLabel="…"
+                        onClick={() => onApprove(item.id)}
+                        className="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700"
+                      >
+                        Approuver
+                      </LoadingButton>
+                    ) : (
+                      <span className="text-xs text-emerald-700">Approuvée</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <div className="mt-4 flex items-center justify-between">
         <p className="text-xs text-slate-500">Page {page} / {lastPage}</p>
@@ -151,7 +183,7 @@ export default function AdminCommissionsPage() {
           <button
             type="button"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page <= 1}
+            disabled={page <= 1 || loading}
             className="rounded-md border border-slate-300 px-3 py-1.5 text-sm disabled:opacity-50"
           >
             Précédent
@@ -159,7 +191,7 @@ export default function AdminCommissionsPage() {
           <button
             type="button"
             onClick={() => setPage((p) => Math.min(lastPage, p + 1))}
-            disabled={page >= lastPage}
+            disabled={page >= lastPage || loading}
             className="rounded-md border border-slate-300 px-3 py-1.5 text-sm disabled:opacity-50"
           >
             Suivant

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Support\FrontendUrl;
 use App\Models\Commission;
 use App\Models\Payout;
 use App\Services\AmbassadorInsightsService;
@@ -95,7 +96,7 @@ class AmbassadorDashboardController extends Controller
             $user->notify(new PlatformNotification(
                 'Nouvel email à vérifier',
                 'Votre email a été modifié. Vérifiez-le avec le code à 6 chiffres envoyé.',
-                rtrim((string) config('app.frontend_url', config('app.url')), '/').'/verification?email='.urlencode($validated['email'])
+                FrontendUrl::path('verification?email='.urlencode($validated['email']))
             ));
 
             return response()->json([
@@ -174,11 +175,8 @@ class AmbassadorDashboardController extends Controller
         $rankData = $this->insights->rankForAmbassador($user->id);
         $earnings = $this->insights->earningsBreakdown($user->id);
         $tier = $this->tierService->tierProgress($validatedEnrollments);
-        $frontendBase = rtrim((string) config('app.frontend_url', config('app.url')), '/');
         $referralCode = $referralLink?->code;
-        $personalUrl = $referralCode
-            ? $frontendBase.'/formations?ref='.urlencode($referralCode)
-            : null;
+        $personalUrl = $referralCode ? FrontendUrl::referralLink($referralCode) : null;
 
         return response()->json([
             'profile' => [

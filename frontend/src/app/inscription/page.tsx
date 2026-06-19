@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiRequest } from "@/lib/api";
+import { SubmitButton } from "@/components/ui/LoadingState";
 import { formations, getFormationBySlug } from "@/lib/formations";
 
 const STEPS = [
@@ -594,13 +595,13 @@ function InscriptionForm() {
                     Continuer
                   </button>
                 ) : (
-                  <button
-                    type="submit"
-                    disabled={submitting}
+                  <SubmitButton
+                    loading={submitting}
+                    loadingLabel="Envoi puis paiement…"
                     className="rounded-lg bg-[#14aee5] px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[#14aee5]/25 hover:bg-[#1199cc] disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {submitting ? "Envoi puis paiement…" : "Envoyer et payer les frais d'inscription"}
-                  </button>
+                    Envoyer et payer les frais d&apos;inscription
+                  </SubmitButton>
                 )}
               </div>
             </div>

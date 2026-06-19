@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "@/lib/api";
+
 type FormationPricingItem = {
   slug: string;
   title: string;
@@ -14,9 +16,6 @@ type CommissionRuleItem = {
   max_enrollments?: number | null;
   amount_per_enrollment?: number | null;
 };
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.partnext.org/api/v1";
 
 export async function fetchFormationPricingCatalog(): Promise<FormationPricingItem[]> {
   try {

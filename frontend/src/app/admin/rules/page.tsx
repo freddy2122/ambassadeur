@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { LoadingBlock, LoadingButton, SubmitButton } from "@/components/ui/LoadingState";
 
 type Rule = {
   id: number;
@@ -16,6 +17,9 @@ export default function AdminRulesPage() {
   const [rules, setRules] = useState<Rule[]>([]);
   const [error, setError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [form, setForm] = useState({
     program_type: "superieur",
     tier: "bronze",
@@ -26,15 +30,17 @@ export default function AdminRulesPage() {
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     (async () => {
       const res = await apiRequest<{ data?: Rule[] }>("/admin/commission-rules", {}, true);
       if (cancelled) return;
       if (res.error) {
         setError(res.error);
-        return;
+      } else {
+        setError("");
+        setRules(res.data?.data ?? []);
       }
-      setError("");
-      setRules(res.data?.data ?? []);
+      setLoading(false);
     })();
 
     return () => {
@@ -44,14 +50,20 @@ export default function AdminRulesPage() {
 
   async function onCreate(e: FormEvent) {
     e.preventDefault();
-    await apiRequest("/admin/commission-rules", {
-      method: "POST",
-      body: JSON.stringify({
-        ...form,
-        max_enrollments: form.max_enrollments ? Number(form.max_enrollments) : null,
-      }),
-    }, true);
-    setRefreshKey((k) => k + 1);
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      await apiRequest("/admin/commission-rules", {
+        method: "POST",
+        body: JSON.stringify({
+          ...form,
+          max_enrollments: form.max_enrollments ? Number(form.max_enrollments) : null,
+        }),
+      }, true);
+      setRefreshKey((k) => k + 1);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -59,6 +71,11 @@ export default function AdminRulesPage() {
       <section className="rounded-2xl border border-slate-200 bg-white p-5">
         <h1 className="text-xl font-bold text-[#0b2e7a]">Règles de commission</h1>
         {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
+        {loading ? (
+          <div className="mt-4">
+            <LoadingBlock label="Chargement des règles…" />
+          </div>
+        ) : (
         <div className="mt-3 overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
@@ -80,22 +97,31 @@ export default function AdminRulesPage() {
                   <td className="py-2 pr-3">{rule.max_enrollments ?? "-"}</td>
                   <td className="py-2 pr-3">{Number(rule.amount_per_enrollment).toLocaleString("fr-FR")} FCFA</td>
                   <td className="py-2">
-                    <button
+                    <LoadingButton
                       type="button"
+                      loading={deletingId === rule.id}
+                      loadingLabel="…"
                       onClick={async () => {
-                        await apiRequest(`/admin/commission-rules/${rule.id}`, { method: "DELETE" }, true);
-                        setRefreshKey((k) => k + 1);
+                        if (deletingId !== null) return;
+                        setDeletingId(rule.id);
+                        try {
+                          await apiRequest(`/admin/commission-rules/${rule.id}`, { method: "DELETE" }, true);
+                          setRefreshKey((k) => k + 1);
+                        } finally {
+                          setDeletingId(null);
+                        }
                       }}
                       className="rounded-md border border-red-200 px-2 py-1 text-xs font-semibold text-red-700"
                     >
                       Supprimer
-                    </button>
+                    </LoadingButton>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        )}
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5">
@@ -110,9 +136,13 @@ export default function AdminRulesPage() {
           <input className="rounded-md border border-slate-300 px-3 py-2 text-sm" type="number" value={form.min_enrollments} onChange={(e) => setForm({ ...form, min_enrollments: Number(e.target.value) })} placeholder="Min" />
           <input className="rounded-md border border-slate-300 px-3 py-2 text-sm" value={form.max_enrollments} onChange={(e) => setForm({ ...form, max_enrollments: e.target.value })} placeholder="Max (optionnel)" />
           <input className="rounded-md border border-slate-300 px-3 py-2 text-sm" type="number" value={form.amount_per_enrollment} onChange={(e) => setForm({ ...form, amount_per_enrollment: Number(e.target.value) })} placeholder="Montant FCFA" />
-          <button className="md:col-span-5 rounded-md bg-[#0b2e7a] px-3 py-2 text-sm font-semibold text-white" type="submit">
+          <SubmitButton
+            loading={submitting}
+            loadingLabel="Enregistrement…"
+            className="md:col-span-5 w-full rounded-md bg-[#0b2e7a] px-3 py-2 text-sm text-white"
+          >
             Ajouter la règle
-          </button>
+          </SubmitButton>
         </form>
       </section>
     </div>

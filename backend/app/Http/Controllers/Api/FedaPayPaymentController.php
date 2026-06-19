@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Support\FrontendUrl;
 use App\Actions\FulfillLeadEnrollment;
 use App\Http\Controllers\Controller;
 use App\Models\FormationPricing;
@@ -91,7 +92,7 @@ class FedaPayPaymentController extends Controller
      */
     public function callback(Request $request)
     {
-        $frontendBase = rtrim((string) config('app.frontend_url'), '/');
+        $frontendBase = FrontendUrl::base();
         $leadId = (int) $request->query('lead_id', 0);
         $txIdRaw = $request->query('id')
             ?? $request->query('transaction_id')

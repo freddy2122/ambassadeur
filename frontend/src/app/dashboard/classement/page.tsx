@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Crown, Medal, Trophy } from "lucide-react";
 import { type LeaderboardEntry, type LeaderboardResponse } from "@/lib/ambassador";
 import { apiRequest } from "@/lib/api";
+import { LoadingBlock } from "@/components/ui/LoadingState";
 import { cn } from "@/lib/cn";
 
 export default function ClassementPage() {
@@ -27,14 +28,14 @@ export default function ClassementPage() {
 
   return (
     <div className="space-y-5 pb-20 lg:pb-0">
-      <section className="rounded-eig-lg border border-slate-200 bg-white p-6 shadow-eig">
+      <section className="rounded-eig-lg border border-eig-blue bg-gradient-to-r from-eig-blue via-eig-blue-light to-eig-gold-dark p-6 text-white shadow-eig">
         <div className="flex items-center gap-3">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-eig-gold/90 text-eig-blue">
             <Trophy size={24} />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-eig-cyan">Classement Général</p>
-            <h2 className="text-2xl font-extrabold text-eig-blue">Top Ambassadeurs EIG</h2>
+            <p className="text-xs font-semibold uppercase tracking-wide text-eig-gold-light">Classement Général</p>
+            <h2 className="text-2xl font-extrabold">Top Ambassadeurs EIG</h2>
           </div>
         </div>
       </section>
@@ -44,8 +45,8 @@ export default function ClassementPage() {
       ) : null}
 
       {loading ? (
-        <section className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
-          Chargement du classement...
+        <section className="rounded-xl border border-slate-200 bg-white p-6">
+          <LoadingBlock label="Chargement du classement…" />
         </section>
       ) : null}
 

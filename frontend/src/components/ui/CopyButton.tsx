@@ -8,9 +8,10 @@ type CopyButtonProps = {
   value: string;
   label?: string;
   className?: string;
+  disabled?: boolean;
 };
 
-export function CopyButton({ value, label = "Copier", className }: CopyButtonProps) {
+export function CopyButton({ value, label = "Copier", className, disabled = false }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
@@ -27,8 +28,10 @@ export function CopyButton({ value, label = "Copier", className }: CopyButtonPro
     <button
       type="button"
       onClick={handleCopy}
+      disabled={disabled || !value}
       className={cn(
         "inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-eig-blue transition-colors hover:bg-slate-50",
+        "disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
     >

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { apiRequest } from "@/lib/api";
+import { LoadingBlock, LoadingButton } from "@/components/ui/LoadingState";
 import { BarChart3, CreditCard, GraduationCap, Users } from "lucide-react";
 
 type AdminOverviewResponse = {
@@ -46,6 +47,7 @@ export default function AdminPage() {
   const [lastPage, setLastPage] = useState(1);
   const [search, setSearch] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams({ page: String(page), per_page: "10" });
@@ -54,6 +56,7 @@ export default function AdminPage() {
       if (res.error) {
         setError(res.error);
         setLoading(false);
+        setRefreshing(false);
         return;
       }
       setStats({
@@ -65,12 +68,13 @@ export default function AdminPage() {
       setRows(res.data?.ambassadors ?? []);
       setLastPage(res.data?.meta?.last_page ?? 1);
       setLoading(false);
+      setRefreshing(false);
     });
   }, [page, search, refreshKey]);
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-slate-200 bg-gradient-to-r from-[#0b2e7a] to-[#1144a6] p-6 text-white">
+      <section className="rounded-2xl border border-eig-blue bg-gradient-to-r from-[#0b2e7a] via-[#1144a6] to-eig-gold-dark p-6 text-white">
         <h1 className="text-2xl font-bold">Dashboard Admin</h1>
         <p className="mt-1 text-sm text-blue-100">
           Vue globale des ambassadeurs et de leurs performances.
@@ -102,19 +106,27 @@ export default function AdminPage() {
               placeholder="Rechercher nom/email"
               className="rounded-md border border-slate-300 px-3 py-2 text-sm"
             />
-            <button
+            <LoadingButton
               type="button"
+              loading={refreshing}
+              loadingLabel="Actualisation…"
               onClick={() => {
                 setLoading(true);
+                setRefreshing(true);
                 setRefreshKey((k) => k + 1);
               }}
               className="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700"
             >
               Actualiser
-            </button>
+            </LoadingButton>
           </div>
         </div>
         <div className="overflow-x-auto">
+          {loading ? (
+            <div className="py-8">
+              <LoadingBlock label="Chargement des ambassadeurs…" />
+            </div>
+          ) : (
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-left text-slate-500">
@@ -144,6 +156,7 @@ export default function AdminPage() {
               ))}
             </tbody>
           </table>
+          )}
         </div>
         {!loading && (rows?.length ?? 0) === 0 ? <p className="mt-3 text-sm text-slate-500">Aucun ambassadeur trouvé.</p> : null}
         <div className="mt-4 flex items-center justify-between">

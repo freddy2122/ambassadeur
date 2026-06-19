@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { LoadingBlock, LoadingButton, SubmitButton } from "@/components/ui/LoadingState";
 
 type Pricing = {
   id: number;
@@ -17,6 +18,9 @@ export default function AdminFormationsPricingPage() {
   const [items, setItems] = useState<Pricing[]>([]);
   const [error, setError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [form, setForm] = useState({
     slug: "",
     title: "",
@@ -28,15 +32,17 @@ export default function AdminFormationsPricingPage() {
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     (async () => {
       const res = await apiRequest<{ data?: Pricing[] }>("/admin/formation-pricings", {}, true);
       if (cancelled) return;
       if (res.error) {
         setError(res.error);
-        return;
+      } else {
+        setError("");
+        setItems(res.data?.data ?? []);
       }
-      setError("");
-      setItems(res.data?.data ?? []);
+      setLoading(false);
     })();
 
     return () => {
@@ -46,18 +52,24 @@ export default function AdminFormationsPricingPage() {
 
   async function onCreate(e: FormEvent) {
     e.preventDefault();
-    await apiRequest("/admin/formation-pricings", {
-      method: "POST",
-      body: JSON.stringify({
-        slug: form.slug,
-        title: form.title,
-        base_price: form.base_price ? Number(form.base_price) : null,
-        discount_price: form.discount_price ? Number(form.discount_price) : null,
-        registration_fee: form.registration_fee ? Number(form.registration_fee) : null,
-        is_active: form.is_active,
-      }),
-    }, true);
-    setRefreshKey((k) => k + 1);
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      await apiRequest("/admin/formation-pricings", {
+        method: "POST",
+        body: JSON.stringify({
+          slug: form.slug,
+          title: form.title,
+          base_price: form.base_price ? Number(form.base_price) : null,
+          discount_price: form.discount_price ? Number(form.discount_price) : null,
+          registration_fee: form.registration_fee ? Number(form.registration_fee) : null,
+          is_active: form.is_active,
+        }),
+      }, true);
+      setRefreshKey((k) => k + 1);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -65,6 +77,11 @@ export default function AdminFormationsPricingPage() {
       <section className="rounded-2xl border border-slate-200 bg-white p-5">
         <h1 className="text-xl font-bold text-[#0b2e7a]">Tarifs formations</h1>
         {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
+        {loading ? (
+          <div className="mt-4">
+            <LoadingBlock label="Chargement des tarifs…" />
+          </div>
+        ) : (
         <div className="mt-3 overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
@@ -89,22 +106,31 @@ export default function AdminFormationsPricingPage() {
                   <td className="py-2 pr-3">{Number(item.registration_fee ?? 0).toLocaleString("fr-FR")} FCFA</td>
                   <td className="py-2 pr-3">{item.is_active ? "Actif" : "Inactif"}</td>
                   <td className="py-2">
-                    <button
+                    <LoadingButton
                       type="button"
+                      loading={deletingId === item.id}
+                      loadingLabel="…"
                       onClick={async () => {
-                        await apiRequest(`/admin/formation-pricings/${item.id}`, { method: "DELETE" }, true);
-                        setRefreshKey((k) => k + 1);
+                        if (deletingId !== null) return;
+                        setDeletingId(item.id);
+                        try {
+                          await apiRequest(`/admin/formation-pricings/${item.id}`, { method: "DELETE" }, true);
+                          setRefreshKey((k) => k + 1);
+                        } finally {
+                          setDeletingId(null);
+                        }
                       }}
                       className="rounded-md border border-red-200 px-2 py-1 text-xs font-semibold text-red-700"
                     >
                       Supprimer
-                    </button>
+                    </LoadingButton>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        )}
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5">
@@ -119,7 +145,13 @@ export default function AdminFormationsPricingPage() {
           <input className="rounded-md border border-slate-300 px-3 py-2 text-sm" type="number" placeholder="Prix normal" value={form.base_price} onChange={(e) => setForm({ ...form, base_price: e.target.value })} />
           <input className="rounded-md border border-slate-300 px-3 py-2 text-sm" type="number" placeholder="Prix promo" value={form.discount_price} onChange={(e) => setForm({ ...form, discount_price: e.target.value })} />
           <input className="rounded-md border border-slate-300 px-3 py-2 text-sm" type="number" placeholder="Frais inscription" value={form.registration_fee} onChange={(e) => setForm({ ...form, registration_fee: e.target.value })} />
-          <button type="submit" className="md:col-span-3 rounded-md bg-[#0b2e7a] px-3 py-2 text-sm font-semibold text-white">Créer tarif</button>
+          <SubmitButton
+            loading={submitting}
+            loadingLabel="Création…"
+            className="md:col-span-3 w-full rounded-md bg-[#0b2e7a] px-3 py-2 text-sm text-white"
+          >
+            Créer tarif
+          </SubmitButton>
         </form>
       </section>
     </div>
