@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Admin\PayoutRunController;
 use App\Http\Controllers\Api\AmbassadorDashboardController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FedaPayPaymentController;
+use App\Http\Controllers\Api\GeniusPayPaymentController;
 use App\Http\Controllers\Api\FormationCatalogController;
 use App\Http\Controllers\Api\PaymentGatewayController;
 use App\Http\Controllers\Api\ReferralController;
@@ -36,6 +37,10 @@ Route::prefix('v1')->group(function (): void {
     Route::post('/payments/fedapay/initialize', [FedaPayPaymentController::class, 'initialize']);
     Route::get('/payments/fedapay/callback', [FedaPayPaymentController::class, 'callback']);
     Route::post('/payments/fedapay/webhook', [FedaPayPaymentController::class, 'webhook']);
+
+    Route::post('/payments/geniuspay/initialize', [GeniusPayPaymentController::class, 'initialize']);
+    Route::get('/payments/geniuspay/callback', [GeniusPayPaymentController::class, 'callback']);
+    Route::post('/payments/geniuspay/webhook', [GeniusPayPaymentController::class, 'webhook']);
 
     Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('/auth/logout', [AuthController::class, 'logout']);

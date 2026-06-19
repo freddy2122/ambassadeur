@@ -7,7 +7,8 @@ use App\Notifications\PlatformNotification;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use App\Services\CommissionService;
-use App\Services\FedaPayService;
+use App\Services\GeniusPayService;
+use App\Services\PayoutProviderService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schedule;
 
@@ -24,7 +25,7 @@ Artisan::command('commissions:generate {periodMonth?}', function (CommissionServ
 
 Artisan::command('payouts:auto-run {periodMonth?}', function (
     CommissionService $commissionService,
-    FedaPayService $fedaPayService,
+    PayoutProviderService $payoutProvider,
 ): void {
     $run = PayoutRun::query()->create([
         'command' => 'payouts:auto-run',
@@ -115,30 +116,43 @@ Artisan::command('payouts:auto-run {periodMonth?}', function (
             'description' => 'Commission ambassadeur '.$commission->period_month,
             'amount' => (float) $commission->gross_amount,
             'currency' => 'XOF',
+            'payment_method' => $profile->payment_method,
+            'idempotency_key' => 'commission-'.$commission->id,
+            'metadata' => [
+                'commission_id' => $commission->id,
+                'ambassador_id' => $commission->ambassador_id,
+            ],
             'customer' => [
                 'name' => $ambassador->name,
                 'email' => $ambassador->email,
-                'phone' => $profile->phone,
+                'phone' => $profile->payment_account ?: $profile->phone,
             ],
         ];
 
-        $providerResponse = $fedaPayService->createTransfer($transferPayload);
+        $providerResponse = $payoutProvider->createTransfer($transferPayload);
+        $providerStatus = $providerResponse['status'] ?? 'processing';
+        $payoutStatus = $providerStatus === 'failed' ? 'failed' : ($providerStatus === 'paid' ? 'paid' : 'processing');
 
         $payout = Payout::query()->create([
             'ambassador_id' => $commission->ambassador_id,
             'commission_id' => $commission->id,
             'amount' => $commission->gross_amount,
-            'method' => 'fedapay',
-            'status' => $providerResponse['status'] === 'failed' ? 'failed' : 'processing',
+            'method' => $payoutProvider->method(),
+            'status' => $payoutStatus,
             'retry_count' => 0,
-            'next_retry_at' => $providerResponse['status'] === 'failed' ? now()->addMinutes($retryBaseMinutes) : null,
-            'last_error' => $providerResponse['status'] === 'failed' ? json_encode($providerResponse['raw'] ?? null) : null,
+            'next_retry_at' => $payoutStatus === 'failed' ? now()->addMinutes($retryBaseMinutes) : null,
+            'last_error' => $payoutStatus === 'failed' ? json_encode($providerResponse['raw'] ?? null) : null,
             'provider_reference' => $providerResponse['provider_reference'] ?? null,
             'provider_payload' => $providerResponse['raw'] ?? null,
+            'paid_at' => $payoutStatus === 'paid' ? now() : null,
         ]);
 
         $commission->update([
-            'status' => $payout->status === 'failed' ? 'payment_failed' : 'in_payment',
+            'status' => match ($payoutStatus) {
+                'failed' => 'payment_failed',
+                'paid' => 'paid',
+                default => 'in_payment',
+            },
         ]);
 
         if ($payout->status === 'failed') {
@@ -175,7 +189,7 @@ Artisan::command('payouts:auto-run {periodMonth?}', function (
     $this->info("Termine: success={$success}, failed={$failed}, skipped={$skipped}");
 })->purpose('Run automatic payouts without admin approval');
 
-Artisan::command('payouts:retry-failed', function (FedaPayService $fedaPayService): void {
+Artisan::command('payouts:retry-failed', function (PayoutProviderService $payoutProvider): void {
     if (! (bool) config('services.payout.auto_retry_enabled', true)) {
         $this->warn('Retry desactive (PAYOUT_AUTO_RETRY_ENABLED=false).');
 
@@ -221,30 +235,39 @@ Artisan::command('payouts:retry-failed', function (FedaPayService $fedaPayServic
                 'description' => 'Retry commission ambassadeur '.$commission->period_month,
                 'amount' => (float) $commission->gross_amount,
                 'currency' => 'XOF',
+                'payment_method' => $profile->payment_method,
+                'idempotency_key' => 'commission-retry-'.$commission->id.'-'.$payout->id,
+                'metadata' => [
+                    'commission_id' => $commission->id,
+                    'payout_id' => $payout->id,
+                ],
                 'customer' => [
                     'name' => $ambassador->name,
                     'email' => $ambassador->email,
-                    'phone' => $profile->phone,
+                    'phone' => $profile->payment_account ?: $profile->phone,
                 ],
             ];
 
-            $providerResponse = $fedaPayService->createTransfer($payload);
+            $providerResponse = $payoutProvider->createTransfer($payload);
 
             $newRetryCount = (int) $payout->retry_count + 1;
-            $isFailed = ($providerResponse['status'] ?? '') === 'failed';
+            $providerStatus = $providerResponse['status'] ?? 'processing';
+            $isFailed = $providerStatus === 'failed';
+            $isPaid = $providerStatus === 'paid';
             $nextRetryAt = $isFailed ? now()->addMinutes($baseMinutes * (2 ** max(0, $newRetryCount - 1))) : null;
 
             $payout->update([
-                'status' => $isFailed ? 'failed' : 'processing',
+                'status' => $isFailed ? 'failed' : ($isPaid ? 'paid' : 'processing'),
                 'retry_count' => $newRetryCount,
                 'next_retry_at' => $nextRetryAt,
                 'last_error' => $isFailed ? json_encode($providerResponse['raw'] ?? null) : null,
                 'provider_reference' => $providerResponse['provider_reference'] ?? $payout->provider_reference,
                 'provider_payload' => $providerResponse['raw'] ?? $payout->provider_payload,
+                'paid_at' => $isPaid ? now() : null,
             ]);
 
             $commission->update([
-                'status' => $isFailed ? 'payment_failed' : 'in_payment',
+                'status' => $isFailed ? 'payment_failed' : ($isPaid ? 'paid' : 'in_payment'),
             ]);
 
             if ($isFailed) {
@@ -260,7 +283,7 @@ Artisan::command('payouts:retry-failed', function (FedaPayService $fedaPayServic
     $this->info("Retry termine: success={$success}, failed={$failed}");
 })->purpose('Retry failed payouts with exponential backoff');
 
-Artisan::command('payouts:reconcile', function (FedaPayService $fedaPayService): void {
+Artisan::command('payouts:reconcile', function (PayoutProviderService $payoutProvider): void {
     $run = PayoutRun::query()->create([
         'command' => 'payouts:reconcile',
         'status' => 'running',
@@ -268,7 +291,7 @@ Artisan::command('payouts:reconcile', function (FedaPayService $fedaPayService):
     ]);
 
     $processing = Payout::query()
-        ->where('method', 'fedapay')
+        ->where('method', $payoutProvider->method())
         ->where('status', 'processing')
         ->whereNotNull('provider_reference')
         ->with(['ambassador', 'commission'])
@@ -298,15 +321,14 @@ Artisan::command('payouts:reconcile', function (FedaPayService $fedaPayService):
 
         try {
         $providerId = (string) $payout->provider_reference;
-        $transfer = ctype_digit($providerId) ? $fedaPayService->retrieveTransfer((int) $providerId) : null;
+        $transfer = $payoutProvider->retrieveTransfer($providerId);
         if (! $transfer) {
             $unchanged++;
             continue;
         }
 
-        $rawStatus = strtolower((string) ($transfer['status'] ?? ''));
-        $isSuccess = in_array($rawStatus, ['approved', 'transferred', 'successful', 'success', 'completed'], true);
-        $isFailure = in_array($rawStatus, ['failed', 'canceled', 'cancelled', 'rejected'], true);
+        $isSuccess = $payoutProvider->isTransferSuccessful($transfer);
+        $isFailure = $payoutProvider->isTransferFailed($transfer);
 
         if (! $isSuccess && ! $isFailure) {
             $unchanged++;
@@ -326,10 +348,11 @@ Artisan::command('payouts:reconcile', function (FedaPayService $fedaPayService):
         }
 
         if ($payout->ambassador) {
+            $label = $payoutProvider->providerLabel();
             $payout->ambassador->notify(new PlatformNotification(
                 $isSuccess ? 'Retrait confirmé' : 'Retrait échoué',
                 $isSuccess
-                    ? 'Votre retrait de commission a été confirmé par FedaPay.'
+                    ? 'Votre retrait de commission a été confirmé par '.$label.'.'
                     : 'Votre retrait de commission a été rejeté/échoué. Merci de vérifier vos informations de paiement.',
                 rtrim((string) config('app.frontend_url', config('app.url')), '/').'/dashboard/paiements'
             ));
@@ -355,6 +378,49 @@ Artisan::command('payouts:reconcile', function (FedaPayService $fedaPayService):
 
     $this->info("Reconciliation terminee: paid={$paid}, failed={$failed}, unchanged={$unchanged}");
 })->purpose('Reconcile processing payouts with provider status');
+
+Artisan::command('geniuspay:wallets', function (GeniusPayService $geniusPay): void {
+    $result = $geniusPay->listWalletsResult();
+    if ($result['error'] !== null) {
+        $this->error($result['error']);
+
+        return;
+    }
+
+    $wallets = $result['wallets'];
+    if ($wallets === []) {
+        $this->warn('Aucun wallet sur ce compte. Créez-en un depuis le dashboard Genius Pay.');
+
+        return;
+    }
+
+    $payoutWalletId = null;
+    foreach ($wallets as $wallet) {
+        $type = (string) ($wallet['type'] ?? '');
+        $isPayout = str_contains($type, 'payout');
+        if ($isPayout && $payoutWalletId === null) {
+            $payoutWalletId = $wallet['id'] ?? null;
+        }
+
+        $marker = $isPayout ? ' ← recommandé pour GENIUSPAY_PAYOUT_WALLET_ID' : '';
+        $this->line(sprintf(
+            '- %s | type=%s | id=%s | solde=%s %s%s',
+            $wallet['name'] ?? 'Wallet',
+            $type !== '' ? $type : '?',
+            $wallet['id'] ?? '?',
+            $wallet['available_balance'] ?? $wallet['balance'] ?? '?',
+            $wallet['currency'] ?? 'XOF',
+            $marker,
+        ));
+    }
+
+    $this->newLine();
+    if (is_string($payoutWalletId) && $payoutWalletId !== '') {
+        $this->info('Ajoutez dans .env : GENIUSPAY_PAYOUT_WALLET_ID='.$payoutWalletId);
+    } else {
+        $this->info('Copiez le id du wallet payout dans GENIUSPAY_PAYOUT_WALLET_ID.');
+    }
+})->purpose('Lister les wallets Genius Pay (sandbox ou live)');
 
 Schedule::command('payouts:auto-run')
     ->dailyAt((string) config('services.payout.auto_run_time', '02:00'))

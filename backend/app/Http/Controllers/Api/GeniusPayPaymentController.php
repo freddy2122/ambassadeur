@@ -2,23 +2,18 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Support\FrontendUrl;
 use App\Actions\FulfillLeadEnrollment;
 use App\Http\Controllers\Controller;
 use App\Models\FormationPricing;
 use App\Models\Lead;
-use App\Services\FedaPayService;
+use App\Services\GeniusPayService;
+use App\Support\FrontendUrl;
 use Illuminate\Http\Request;
 
-/**
- * Paiement des frais d'inscription via FedaPay (page de paiement hebergee).
- *
- * @see https://docs.fedapay.com/integration-api/fr/collects-management-fr.md
- */
-class FedaPayPaymentController extends Controller
+class GeniusPayPaymentController extends Controller
 {
     public function __construct(
-        private readonly FedaPayService $fedapay,
+        private readonly GeniusPayService $geniusPay,
         private readonly FulfillLeadEnrollment $fulfillLeadEnrollment,
     ) {}
 
@@ -49,24 +44,22 @@ class FedaPayPaymentController extends Controller
             ], 422);
         }
 
-        $amount = (int) max(100, round((float) $pricing->registration_fee));
+        $amount = (int) max(200, round((float) $pricing->registration_fee));
         $description = 'Frais de dossier — '.$pricing->title;
-        [$firstname, $lastname] = $this->splitFullName((string) $lead->full_name);
-        $phonePayload = FedaPayService::formatCustomerPhone($lead->phone);
         $frontendOrigin = FrontendUrl::resolveOrigin($validated['frontend_origin'] ?? null);
-        $callbackUrl = url('/api/v1/payments/fedapay/callback')
+        $callbackBase = url('/api/v1/payments/geniuspay/callback')
             .'?lead_id='.$lead->id
             .'&frontend_origin='.rawurlencode($frontendOrigin);
 
         try {
-            $session = $this->fedapay->createTransactionCheckout(
+            $session = $this->geniusPay->createPaymentCheckout(
                 $description,
                 $amount,
-                $callbackUrl,
-                $firstname,
-                $lastname,
+                $callbackBase.'&status=success',
+                $callbackBase.'&status=error',
+                (string) $lead->full_name,
                 (string) $lead->email,
-                $phonePayload,
+                $lead->phone,
                 [
                     'lead_id' => $lead->id,
                     'formation_slug' => $validated['formation_slug'],
@@ -81,7 +74,7 @@ class FedaPayPaymentController extends Controller
 
         $lead->update([
             'formation_slug' => $validated['formation_slug'],
-            'payment_reference' => $session['transaction_id'],
+            'payment_reference' => $session['reference'],
         ]);
 
         return response()->json([
@@ -91,18 +84,13 @@ class FedaPayPaymentController extends Controller
         ]);
     }
 
-    /**
-     * Retour navigateur apres paiement (callback_url FedaPay).
-     */
     public function callback(Request $request)
     {
         $leadId = (int) $request->query('lead_id', 0);
+        $status = strtolower((string) $request->query('status', ''));
         $frontendBase = FrontendUrl::resolveOrigin(
             is_string($request->query('frontend_origin')) ? $request->query('frontend_origin') : null,
         );
-        $txIdRaw = $request->query('id')
-            ?? $request->query('transaction_id')
-            ?? $request->query('transaction');
 
         if ($leadId < 1) {
             return redirect()->away($frontendBase.'/inscription/paiement-echec?raison=reference_manquante');
@@ -113,35 +101,32 @@ class FedaPayPaymentController extends Controller
             return redirect()->away($frontendBase.'/inscription/paiement-echec?raison=lead_introuvable');
         }
 
-        $tx = null;
-        if (is_string($txIdRaw) && $txIdRaw !== '' && ctype_digit($txIdRaw)) {
-            $tx = $this->fedapay->retrieveTransaction((int) $txIdRaw);
-        }
-        if ($tx === null && $lead->payment_reference !== null && $lead->payment_reference !== '' && ctype_digit((string) $lead->payment_reference)) {
-            $tx = $this->fedapay->retrieveTransaction((int) $lead->payment_reference);
-        }
-
-        if ($tx === null) {
+        if ($status === 'error') {
             return redirect()->away($frontendBase.'/inscription/paiement-echec?raison=verification');
         }
 
-        $metaLead = (int) (data_get($tx, 'custom_metadata.lead_id') ?? data_get($tx, 'metadata.lead_id') ?? 0);
-        if ($metaLead !== $lead->id) {
+        if ($lead->paid_at) {
+            return redirect()->away($frontendBase.'/inscription/paiement-reussi?lead_id='.$lead->id);
+        }
+
+        $reference = (string) ($lead->payment_reference ?? '');
+        if ($reference === '') {
             return redirect()->away($frontendBase.'/inscription/paiement-echec?raison=verification');
         }
 
-        if (! $this->isApproved($tx)) {
+        $payment = $this->geniusPay->retrievePayment($reference);
+        if ($payment === null || ! $this->geniusPay->isPaymentCompleted($payment)) {
             return redirect()->away($frontendBase.'/inscription/paiement-echec?raison=verification');
         }
 
         $frontendBase = FrontendUrl::resolveOrigin(
-            data_get($tx, 'custom_metadata.frontend_origin')
-                ?? data_get($tx, 'metadata.frontend_origin')
+            data_get($payment, 'metadata.frontend_origin')
                 ?? (is_string($request->query('frontend_origin')) ? $request->query('frontend_origin') : null),
         );
 
-        if ($lead->paid_at) {
-            return redirect()->away($frontendBase.'/inscription/paiement-reussi?lead_id='.$lead->id);
+        $metaLead = (int) (data_get($payment, 'metadata.lead_id') ?? 0);
+        if ($metaLead !== $lead->id) {
+            return redirect()->away($frontendBase.'/inscription/paiement-echec?raison=verification');
         }
 
         $this->fulfillLeadEnrollment->execute($lead);
@@ -149,34 +134,33 @@ class FedaPayPaymentController extends Controller
         return redirect()->away($frontendBase.'/inscription/paiement-reussi?lead_id='.$lead->id);
     }
 
-    /**
-     * Webhook FedaPay (transaction approuvee, etc.).
-     */
     public function webhook(Request $request)
     {
-        $payload = $request->json()->all();
-        $name = data_get($payload, 'name') ?? data_get($payload, 'event');
+        if (! $this->geniusPay->verifyWebhookSignature($request)) {
+            return response()->json(['message' => 'Signature invalide.'], 401);
+        }
 
-        if (! is_string($name) || stripos($name, 'transaction') === false || stripos($name, 'approved') === false) {
+        $event = (string) ($request->header('X-Webhook-Event') ?? data_get($request->json()->all(), 'event', ''));
+        if (! in_array($event, ['payment.success', 'payment.completed'], true)) {
             return response()->json(['received' => true]);
         }
 
-        $txId = (int) (data_get($payload, 'entity.id')
-            ?? data_get($payload, 'object.id')
-            ?? data_get($payload, 'data.entity.id')
-            ?? data_get($payload, 'data.id')
-            ?? 0);
-
-        if ($txId < 1) {
+        $paymentData = data_get($request->json()->all(), 'data', []);
+        if (! is_array($paymentData)) {
             return response()->json(['received' => true]);
         }
 
-        $tx = $this->fedapay->retrieveTransaction($txId);
-        if ($tx === null || ! $this->isApproved($tx)) {
+        $reference = (string) ($paymentData['reference'] ?? '');
+        if ($reference === '') {
             return response()->json(['received' => true]);
         }
 
-        $leadId = (int) (data_get($tx, 'custom_metadata.lead_id') ?? data_get($tx, 'metadata.lead_id') ?? 0);
+        $payment = $this->geniusPay->retrievePayment($reference);
+        if ($payment === null || ! $this->geniusPay->isPaymentCompleted($payment)) {
+            return response()->json(['received' => true]);
+        }
+
+        $leadId = (int) (data_get($payment, 'metadata.lead_id') ?? 0);
         if ($leadId < 1) {
             return response()->json(['received' => true]);
         }
@@ -186,37 +170,12 @@ class FedaPayPaymentController extends Controller
             return response()->json(['received' => true]);
         }
 
-        if ((string) $lead->payment_reference !== (string) $txId) {
+        if ((string) $lead->payment_reference !== $reference) {
             return response()->json(['received' => true]);
         }
 
         $this->fulfillLeadEnrollment->execute($lead);
 
         return response()->json(['received' => true]);
-    }
-
-    /**
-     * @return array{0: string, 1: string}
-     */
-    private function splitFullName(string $fullName): array
-    {
-        $fullName = trim(preg_replace('/\s+/u', ' ', $fullName) ?? '');
-        if ($fullName === '') {
-            return ['Client', 'Client'];
-        }
-        $parts = preg_split('/\s+/u', $fullName, 2) ?: [];
-
-        return [
-            $parts[0] ?? 'Client',
-            $parts[1] ?? $parts[0] ?? 'Client',
-        ];
-    }
-
-    /**
-     * @param  array<string, mixed>  $tx
-     */
-    private function isApproved(array $tx): bool
-    {
-        return strtolower((string) ($tx['status'] ?? '')) === 'approved';
     }
 }

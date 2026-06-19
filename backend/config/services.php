@@ -55,7 +55,32 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Versements commissions ambassadeurs (FedaPay uniquement — transferts)
+    | Prestataire paiement actif : fedapay | geniuspay
+    |--------------------------------------------------------------------------
+    */
+    'payment' => [
+        'driver' => env('PAYMENT_DRIVER', 'fedapay'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Genius Pay — collectes (inscription) + payouts commissions
+    | Sandbox : clés pk_sandbox_ / sk_sandbox_ depuis le tableau de bord
+    | Doc : https://pay.genius.ci/docs/api
+    |--------------------------------------------------------------------------
+    */
+    'geniuspay' => [
+        'api_key' => env('GENIUSPAY_API_KEY'),
+        'api_secret' => env('GENIUSPAY_API_SECRET'),
+        'webhook_secret' => env('GENIUSPAY_WEBHOOK_SECRET'),
+        'base_url' => env('GENIUSPAY_BASE_URL', 'https://pay.genius.ci/api/v1/merchant'),
+        'payout_wallet_id' => env('GENIUSPAY_PAYOUT_WALLET_ID'),
+        'sandbox' => env('GENIUSPAY_SANDBOX', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Versements commissions ambassadeurs
     |--------------------------------------------------------------------------
     */
     'payout' => [

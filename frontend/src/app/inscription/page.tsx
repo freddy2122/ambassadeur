@@ -265,6 +265,7 @@ function InscriptionForm() {
         body: JSON.stringify({
           lead_id: leadId,
           formation_slug: slug,
+          frontend_origin: typeof window !== "undefined" ? window.location.origin : undefined,
         }),
       },
     );
