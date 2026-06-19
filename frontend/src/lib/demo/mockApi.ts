@@ -94,6 +94,25 @@ export async function mockApiRequest<T>(
     } as T);
   }
 
+  if (cleanPath === "/payments/config") {
+    return ok({ driver: "geniuspay", label: "Genius Pay (démo)" } as T);
+  }
+
+  if (cleanPath === "/payments/initialize" && method === "POST") {
+    return ok({
+      checkout_url: "/inscription/paiement-reussi?lead_id=9999",
+      authorization_url: "/inscription/paiement-reussi?lead_id=9999",
+      reference: "MTX-DEMO",
+    } as T);
+  }
+
+  if (cleanPath === "/prospects" && method === "POST") {
+    return ok({
+      message: "Dossier enregistré (mode démo).",
+      lead: { id: 9999, formation_slug: "demo" },
+    } as T);
+  }
+
   if (cleanPath === "/me/commissions") {
     return ok({
       commissions: [

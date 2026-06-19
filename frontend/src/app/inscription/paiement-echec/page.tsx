@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 const RAISONS: Record<string, string> = {
   reference_manquante: "La référence de dossier était absente après le paiement.",
   lead_introuvable: "Ce dossier n’a pas été retrouvé. Contactez l’école avec votre mail de paiement.",
-  verification: "Le paiement n’a pas été confirmé (annulé, en attente ou refusé). Si vous avez été débité·e, gardez le reçu FedaPay et contactez nous.",
+  verification: "Le paiement n’a pas été confirmé (annulé, en attente ou refusé). Si vous avez été débité·e, gardez le reçu et contactez nous.",
 };
 
 function PaiementEchecContent() {
@@ -29,7 +29,7 @@ function PaiementEchecContent() {
         <h1 className="text-xl font-extrabold text-[#0b2e7a] md:text-2xl">Paiement non finalisé</h1>
         <p className="mt-3 text-sm leading-relaxed text-slate-600">
           {RAISONS[raison] ??
-            "Le retour depuis FedaPay n’a pas permis de valider le paiement. Vous pouvez réessayer depuis le lien d’inscription envoyé par votre référent."}
+            "Le retour depuis la page de paiement n’a pas permis de valider la transaction. Vous pouvez réessayer depuis le lien d’inscription envoyé par votre référent."}
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link

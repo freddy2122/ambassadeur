@@ -22,7 +22,7 @@ function PaiementReussiContent() {
         </div>
         <h1 className="text-xl font-extrabold text-[#0b2e7a] md:text-2xl">Paiement reçu</h1>
         <p className="mt-3 text-sm leading-relaxed text-slate-600">
-          Vos frais d&apos;inscription ont été pris en compte via FedaPay. Votre dossier peut être étudié par l&apos;équipe
+          Vos frais d&apos;inscription ont été pris en compte. Votre dossier peut être étudié par l&apos;équipe
           admissions.
         </p>
         {leadId ? <p className="mt-3 font-mono text-xs text-slate-500">Référence dossier&nbsp;: #{leadId}</p> : null}

@@ -18,7 +18,9 @@ Programme ambassadeur EIG — frontend Next.js + API Laravel.
    NEXT_PUBLIC_DEMO_MODE=true
    ```
 
-Voir `frontend/DEPLOY-DEMO.md` pour le détail.
+Voir `DEPLOY-DEMO.md` pour le détail (mode démo sans API).
+
+Pour la production avec Genius Pay et l'API réelle : `DEPLOY-PRODUCTION.md`.
 
 ## Développement local (API réelle)
 

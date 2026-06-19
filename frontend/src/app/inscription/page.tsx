@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiRequest } from "@/lib/api";
+import { fetchPaymentGatewayConfig } from "@/lib/paymentGateway";
 import { SubmitButton } from "@/components/ui/LoadingState";
 import { formations, getFormationBySlug } from "@/lib/formations";
 
@@ -73,9 +74,16 @@ function InscriptionForm() {
   const [identityFile, setIdentityFile] = useState<File | null>(null);
   const [diplomaFile, setDiplomaFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [paymentGatewayLabel, setPaymentGatewayLabel] = useState("Genius Pay");
   const [draftBanner, setDraftBanner] = useState<string | null>(null);
   /** Après première lecture localStorage ; évite d’écraser le brouillon avec l’état initial vide. */
   const [draftSaveReady, setDraftSaveReady] = useState(false);
+
+  useEffect(() => {
+    fetchPaymentGatewayConfig().then((config) => {
+      setPaymentGatewayLabel(config.label);
+    });
+  }, []);
 
   useEffect(() => {
     const ref = searchParams.get("ref");
@@ -175,7 +183,7 @@ function InscriptionForm() {
       }
       const digits = form.phone.replace(/\D/g, "");
       if (digits.length < 8) {
-        setStepError("Un numéro de téléphone joignable est obligatoire (paiement FedaPay).");
+        setStepError("Un numéro de téléphone joignable est obligatoire (paiement en ligne).");
         return false;
       }
     }
@@ -251,7 +259,7 @@ function InscriptionForm() {
     }
 
     const pay = await apiRequest<{ checkout_url?: string; authorization_url?: string; message?: string }>(
-      "/payments/fedapay/initialize",
+      "/payments/initialize",
       {
         method: "POST",
         body: JSON.stringify({
@@ -273,7 +281,7 @@ function InscriptionForm() {
     const checkoutUrl = pay.data.checkout_url ?? pay.data.authorization_url;
     if (!checkoutUrl) {
       setSubmitting(false);
-      setMsg("Lien FedaPay indisponible. Réessayez plus tard ou contactez l’école.");
+      setMsg("Lien de paiement indisponible. Réessayez plus tard ou contactez l’école.");
       return;
     }
 
@@ -314,7 +322,8 @@ function InscriptionForm() {
           Inscription étudiant
         </h1>
         <p className="mt-2 max-w-md text-sm text-slate-600">
-          Envoyez vos pièces, validez le dossier, puis réglez vos frais d’inscription en ligne via FedaPay (Mobile Money, carte…).
+          Envoyez vos pièces, validez le dossier, puis réglez vos frais d’inscription en ligne via {paymentGatewayLabel}{" "}
+          (Mobile Money, carte…).
         </p>
       </div>
 
@@ -454,7 +463,7 @@ function InscriptionForm() {
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="phone" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Téléphone <span className="text-red-600">*</span> (WhatsApp, Mobile Money / FedaPay)
+                    Téléphone <span className="text-red-600">*</span> (WhatsApp, Mobile Money)
                   </label>
                   <input
                     id="phone"
