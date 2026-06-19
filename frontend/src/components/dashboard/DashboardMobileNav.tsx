@@ -27,7 +27,7 @@ export function DashboardMobileNav() {
               href={item.href}
               className={cn(
                 "flex flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-semibold transition-colors",
-                active ? "text-eig-gold-dark" : "text-eig-muted",
+                active ? "text-eig-blue" : "text-eig-muted",
               )}
             >
               <Icon size={18} strokeWidth={active ? 2.5 : 2} />

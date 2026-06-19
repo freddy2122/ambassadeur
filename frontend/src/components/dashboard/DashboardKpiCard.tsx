@@ -16,7 +16,7 @@ export function DashboardKpiCard({ icon: Icon, label, value, className }: Dashbo
           <p className="text-xs font-semibold uppercase tracking-wide text-eig-muted">{label}</p>
           <p className="mt-2 text-2xl font-extrabold text-eig-blue">{value}</p>
         </div>
-        <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-eig-gold-light text-eig-gold-dark">
+        <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-eig-yellow-light text-eig-blue">
           <Icon size={20} strokeWidth={2} />
         </div>
       </div>

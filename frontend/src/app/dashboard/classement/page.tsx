@@ -28,13 +28,13 @@ export default function ClassementPage() {
 
   return (
     <div className="space-y-5 pb-20 lg:pb-0">
-      <section className="rounded-eig-lg border border-eig-blue bg-gradient-to-r from-eig-blue via-eig-blue-light to-eig-gold-dark p-6 text-white shadow-eig">
+      <section className="rounded-eig-lg border border-eig-blue bg-eig-blue p-6 text-white shadow-eig">
         <div className="flex items-center gap-3">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-eig-gold/90 text-eig-blue">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-eig-yellow-light text-eig-blue">
             <Trophy size={24} />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-eig-gold-light">Classement Général</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-eig-yellow">Classement Général</p>
             <h2 className="text-2xl font-extrabold">Top Ambassadeurs EIG</h2>
           </div>
         </div>

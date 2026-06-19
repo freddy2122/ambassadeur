@@ -74,7 +74,7 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-eig-blue bg-gradient-to-r from-[#0b2e7a] via-[#1144a6] to-eig-gold-dark p-6 text-white">
+      <section className="rounded-2xl border border-eig-blue bg-eig-blue p-6 text-white">
         <h1 className="text-2xl font-bold">Dashboard Admin</h1>
         <p className="mt-1 text-sm text-blue-100">
           Vue globale des ambassadeurs et de leurs performances.

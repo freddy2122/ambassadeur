@@ -143,8 +143,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   href={item.href}
                   className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                     active
-                      ? "bg-eig-blue text-white shadow-sm ring-1 ring-eig-gold/50"
-                      : "text-slate-700 hover:bg-eig-gold-light/50"
+                      ? "bg-eig-blue text-white shadow-sm ring-1 ring-eig-yellow/80"
+                      : "text-slate-700 hover:bg-eig-yellow-light"
                   }`}
                 >
                   <Icon size={16} />
@@ -189,7 +189,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 >
                   <Bell size={18} />
                   {unreadCount > 0 ? (
-                    <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-eig-gold px-1 text-[10px] font-bold text-eig-blue">
+                    <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-eig-yellow-light px-1 text-[10px] font-bold text-eig-blue ring-1 ring-eig-yellow/60">
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   ) : null}
@@ -225,7 +225,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </div>
                 ) : null}
                 <div className="hidden items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 sm:inline-flex">
-                  <div className="grid h-7 w-7 place-items-center rounded-full bg-eig-gold text-xs font-bold text-eig-blue">
+                  <div className="grid h-7 w-7 place-items-center rounded-full bg-eig-yellow-light text-xs font-bold text-eig-blue ring-1 ring-eig-yellow/50">
                     {getInitials(partnerName)}
                   </div>
                   <span className="text-sm font-medium text-slate-700">{partnerName}</span>

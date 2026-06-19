@@ -27,7 +27,7 @@ export default function CommissionsPage() {
 
   return (
     <div className="space-y-5 pb-20 lg:pb-0">
-      <section className="rounded-eig-lg border border-eig-blue bg-gradient-to-r from-eig-blue via-eig-blue-light to-eig-gold-dark p-6 text-white shadow-eig">
+      <section className="rounded-eig-lg border border-eig-blue bg-eig-blue p-6 text-white shadow-eig">
         <h1 className="text-2xl font-extrabold">Mes Gains</h1>
         <p className="mt-1 text-sm text-blue-100">Suis tes revenus disponibles, en attente et déjà versés.</p>
       </section>

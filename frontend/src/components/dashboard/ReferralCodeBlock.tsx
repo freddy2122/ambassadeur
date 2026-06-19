@@ -15,10 +15,10 @@ export function ReferralCodeBlock({ code, personalUrl }: ReferralCodeBlockProps)
   const { link, host, ready } = usePersonalReferralUrl(code, personalUrl);
 
   return (
-    <section className="rounded-eig-lg border border-eig-gold/25 bg-gradient-to-br from-white to-eig-gold-light/40 p-5 shadow-eig">
+    <section className="rounded-eig-lg border border-eig-yellow/50 bg-eig-yellow-light/40 p-5 shadow-eig">
       <h3 className="text-base font-bold text-eig-blue">Mon Code Ambassadeur</h3>
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <span className="inline-flex rounded-xl border border-eig-gold/40 bg-eig-gold-light px-4 py-2 text-lg font-extrabold tracking-wide text-eig-blue">
+        <span className="inline-flex rounded-xl border border-eig-yellow/60 bg-eig-yellow-light px-4 py-2 text-lg font-extrabold tracking-wide text-eig-blue">
           {code}
         </span>
         <CopyButton value={code} label="Copier" />
@@ -37,8 +37,8 @@ export function ReferralCodeBlock({ code, personalUrl }: ReferralCodeBlockProps)
           )}
         </p>
         <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex min-h-11 flex-1 items-center gap-2 rounded-xl border border-eig-gold/20 bg-white px-3 text-sm text-slate-700">
-            <Link2 size={16} className="shrink-0 text-eig-gold-dark" />
+          <div className="flex min-h-11 flex-1 items-center gap-2 rounded-xl border border-eig-yellow/40 bg-white px-3 text-sm text-slate-700">
+            <Link2 size={16} className="shrink-0 text-eig-blue" />
             {ready ? (
               <span className="truncate">{link}</span>
             ) : (

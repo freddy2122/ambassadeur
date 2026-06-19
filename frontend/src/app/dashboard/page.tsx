@@ -38,7 +38,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-5 pb-20 lg:pb-0">
-      <section className="rounded-eig-lg border border-eig-blue bg-gradient-to-r from-eig-blue via-eig-blue-light to-eig-gold-dark p-6 text-white shadow-eig-lg">
+      <section className="rounded-eig-lg border border-eig-blue bg-eig-blue p-6 text-white shadow-eig-lg">
         <p className="text-sm text-blue-100">Bonjour {firstName},</p>
         <h2 className="mt-1 text-2xl font-extrabold">Tableau de bord</h2>
       </section>
@@ -92,7 +92,7 @@ function QuickLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="inline-flex items-center justify-center rounded-xl border border-eig-gold/30 px-4 py-3 text-sm font-semibold text-eig-blue transition-colors hover:bg-eig-gold-light/60"
+      className="inline-flex items-center justify-center rounded-xl border border-eig-yellow/60 bg-eig-yellow-light px-4 py-3 text-sm font-semibold text-eig-blue transition-colors hover:bg-eig-yellow/40"
     >
       {label}
     </Link>
